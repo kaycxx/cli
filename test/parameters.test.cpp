@@ -22,7 +22,7 @@ suite("parameters") {
         auto& definition = values.definition();
 
         assert_equal(definition.name(), "VALUE");
-        assert_equal(definition.description(), "Values");
+        assert_equal(definition.description().value(), "Values");
         assert_equal(definition.min_count(), 1uz);
         assert_equal(definition.max_count(), 3uz);
     });

@@ -20,15 +20,16 @@ suite("flag") {
 
         assert_equal(definition.name(), "quiet");
         assert_equal(definition.alias().value(), 'q');
-        assert_equal(definition.description(), "Suppress output");
+        assert_equal(definition.description().value(), "Suppress output");
         assert_false(definition.expects_value());
     });
 
-    it("supports flags without aliases", [] {
+    it("supports flags without aliases or descriptions", [] {
         auto app = command("example");
-        auto quiet = app.flag("quiet", "Suppress output");
+        auto quiet = app.flag("quiet");
 
         assert_false(quiet.definition().alias().has_value());
+        assert_false(quiet.definition().description().has_value());
     });
 
     it("parses long and short forms", [] {

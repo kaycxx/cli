@@ -7,17 +7,23 @@
 
 namespace kaycxx::cli {
 
-switch_base::switch_base(std::string_view name, std::string_view description)
+switch_base::switch_base(std::string_view name, std::optional<std::string_view> description)
     : name_(name),
-      alias_(std::nullopt),
-      description_(description)
-{}
+      alias_(std::nullopt)
+{
+    if (description) {
+        description_ = std::string(*description);
+    }
+}
 
-switch_base::switch_base(std::string_view name, char alias, std::string_view description)
+switch_base::switch_base(std::string_view name, char alias, std::optional<std::string_view> description)
     : name_(name),
-      alias_(alias),
-      description_(description)
-{}
+      alias_(alias)
+{
+    if (description) {
+        description_ = std::string(*description);
+    }
+}
 
 std::string const& switch_base::name() const noexcept {
     return name_;
@@ -27,7 +33,7 @@ std::optional<char> switch_base::alias() const noexcept {
     return alias_;
 }
 
-std::string const& switch_base::description() const noexcept {
+std::optional<std::string> const& switch_base::description() const noexcept {
     return description_;
 }
 

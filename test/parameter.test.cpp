@@ -21,7 +21,7 @@ suite("parameter") {
         auto& definition = input.definition();
 
         assert_equal(definition.name(), "INPUT");
-        assert_equal(definition.description(), "Input file");
+        assert_equal(definition.description().value(), "Input file");
         assert_equal(definition.min_count(), 1uz);
         assert_equal(definition.max_count(), 1uz);
     });

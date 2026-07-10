@@ -34,6 +34,8 @@ auto outputs = app.parameters<std::string>("OUTPUT", "Output files");
 
 Each registration method returns a handle. The command owns the underlying definition. The handle is the typed key used to configure that definition and read its parsed value. Keep the command alive while using its handles or parsed arguments.
 
+Descriptions are optional. `print_help()` omits arguments without descriptions from its detailed argument lists.
+
 ## Help and Version Output
 
 `command::parse()` recognizes `--help` and `--version`. Its return value then reports the request through `help_requested()` or `version_requested()`, leaving the application in control of the corresponding output and exit code.

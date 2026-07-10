@@ -35,9 +35,9 @@ public:
      * Creates a positional parameter definition.
      *
      * @param name         Placeholder name used by generated help output and parse errors.
-     * @param description  Human-readable parameter description used by generated help output.
+     * @param description  Optional human-readable parameter description used by generated help output.
      */
-    explicit parameter(std::string_view name, std::string_view description)
+    explicit parameter(std::string_view name, std::optional<std::string_view> description = std::nullopt)
         : parameter_base(name, description)
     {}
 

@@ -8,8 +8,10 @@ Register a flag with a long name and an optional one-character alias.
 
 ```cpp
 auto quiet = app.flag("quiet", 'q', "Suppress normal output");
-auto dry_run = app.flag("dry-run", "Do not write changes");
+auto dry_run = app.flag("dry-run");
 ```
+
+The description is optional. A flag without a description remains parseable but is omitted from the detailed help listing.
 
 Both `--quiet` and `-q` set the first flag. Read flags with `args::get`. An absent flag returns `false`.
 

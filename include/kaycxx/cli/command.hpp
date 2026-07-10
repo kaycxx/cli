@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -46,6 +47,9 @@ struct command_options {
 
     /** Author contact address used by generated version output. */
     std::optional<std::string_view> email;
+
+    /** Email address or website URL to which to report bugs to. */
+    std::optional<std::string_view> bugs;
 
     /** Copyright notice used by generated version output. */
     std::optional<std::string_view> copyright;
@@ -108,6 +112,13 @@ public:
     std::optional<std::string> const& email() const noexcept;
 
     /**
+     * Returns the email address or URL to which to report bugs to.
+     *
+     * @returns Email address or URL to which to report bugs to.
+     */
+    std::optional<std::string> const& bugs() const noexcept;
+
+    /**
      * Returns the configured copyright notice.
      *
      * @returns Copyright notice or an empty optional if no copyright notice was configured.
@@ -132,22 +143,22 @@ public:
      * Registers a flag without a short alias.
      *
      * @param name         Long flag name without the leading `--`.
-     * @param description  Human-readable flag description used by generated help output.
+     * @param description  Optional human-readable flag description used by generated help output.
      *
      * @returns Handle used to query the parsed flag state.
      */
-    cli::flag_handle flag(std::string_view name, std::string_view description);
+    cli::flag_handle flag(std::string_view name, std::optional<std::string_view> description = std::nullopt);
 
     /**
      * Registers a flag with a short alias.
      *
      * @param name         Long flag name without the leading `--`.
      * @param alias        Short flag alias without the leading `-`.
-     * @param description  Human-readable flag description used by generated help output.
+     * @param description  Optional human-readable flag description used by generated help output.
      *
      * @returns Handle used to query the parsed flag state.
      */
-    cli::flag_handle flag(std::string_view name, char alias, std::string_view description);
+    cli::flag_handle flag(std::string_view name, char alias, std::optional<std::string_view> description = std::nullopt);
 
     /**
      * Registers an option without a short alias.
@@ -156,12 +167,16 @@ public:
      *
      * @param name         Long option name without the leading `--`.
      * @param value_name   Placeholder name for the option value used by generated help output.
-     * @param description  Human-readable option description used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
      *
      * @returns Handle used to configure the option and query the parsed option value.
      */
     template <parseable_value T>
-    cli::option_handle<T> option(std::string_view name, std::string_view value_name, std::string_view description) {
+    cli::option_handle<T> option(
+        std::string_view name,
+        std::string_view value_name,
+        std::optional<std::string_view> description = std::nullopt
+    ) {
         auto item = std::make_unique<cli::option<T>>(name, value_name, description);
         auto& definition = *item;
         switches_.push_back(std::move(item));
@@ -176,12 +191,17 @@ public:
      * @param name         Long option name without the leading `--`.
      * @param alias        Short option alias without the leading `-`.
      * @param value_name   Placeholder name for the option value used by generated help output.
-     * @param description  Human-readable option description used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
      *
      * @returns Handle used to configure the option and query the parsed option value.
      */
     template <parseable_value T>
-    cli::option_handle<T> option(std::string_view name, char alias, std::string_view value_name, std::string_view description) {
+    cli::option_handle<T> option(
+        std::string_view name,
+        char alias,
+        std::string_view value_name,
+        std::optional<std::string_view> description = std::nullopt
+    ) {
         auto item = std::make_unique<cli::option<T>>(name, alias, value_name, description);
         auto& definition = *item;
         switches_.push_back(std::move(item));
@@ -194,12 +214,12 @@ public:
      * @tparam T  Parsed parameter value type.
      *
      * @param name         Placeholder name used by generated help output and parse errors.
-     * @param description  Human-readable parameter description used by generated help output.
+     * @param description  Optional human-readable parameter description used by generated help output.
      *
      * @returns Handle used to configure the parameter and query the parsed parameter value.
      */
     template <parseable_value T>
-    cli::parameter_handle<T> parameter(std::string_view name, std::string_view description) {
+    cli::parameter_handle<T> parameter(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
         auto item = std::make_unique<cli::parameter<T>>(name, description);
         auto& definition = *item;
         parameters_.push_back(std::move(item));
@@ -212,12 +232,12 @@ public:
      * @tparam T  Parsed parameter value type.
      *
      * @param name         Placeholder name used by generated help output and parse errors.
-     * @param description  Human-readable parameter description used by generated help output.
+     * @param description  Optional human-readable parameter description used by generated help output.
      *
      * @returns Handle used to configure the parameter list and query the parsed values.
      */
     template <parseable_value T>
-    cli::parameters_handle<T> parameters(std::string_view name, std::string_view description) {
+    cli::parameters_handle<T> parameters(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
         auto item = std::make_unique<cli::parameters<T>>(name, description);
         auto& definition = *item;
         parameters_.push_back(std::move(item));
@@ -271,6 +291,10 @@ public:
 private:
     switch_base const* find_switch(std::string_view name) const noexcept;
     switch_base const* find_switch(char alias) const noexcept;
+    bool has_described_switches() const noexcept;
+    bool has_described_parameters() const noexcept;
+    std::size_t max_switch_usage_length() const;
+    std::size_t max_parameter_usage_length() const;
     void apply_option_defaults(args& result) const;
     void parse_parameters(args& result, std::vector<std::string_view> const& values) const;
 
@@ -278,6 +302,7 @@ private:
     std::optional<std::string> version_;
     std::optional<std::string> author_;
     std::optional<std::string> email_;
+    std::optional<std::string> bugs_;
     std::optional<std::string> copyright_;
     std::optional<std::string> license_;
     std::optional<std::string> description_;

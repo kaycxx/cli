@@ -5,16 +5,19 @@
 
 namespace kaycxx::cli {
 
-parameter_base::parameter_base(std::string_view name, std::string_view description)
-    : name_(name),
-      description_(description)
-{}
+parameter_base::parameter_base(std::string_view name, std::optional<std::string_view> description)
+    : name_(name)
+{
+    if (description) {
+        description_ = std::string(*description);
+    }
+}
 
 std::string const& parameter_base::name() const noexcept {
     return name_;
 }
 
-std::string const& parameter_base::description() const noexcept {
+std::optional<std::string> const& parameter_base::description() const noexcept {
     return description_;
 }
 

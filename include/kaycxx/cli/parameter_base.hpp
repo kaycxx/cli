@@ -10,6 +10,7 @@
 
 #include <any>
 #include <cstddef>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -25,9 +26,9 @@ public:
      * Creates a positional parameter definition.
      *
      * @param name         Placeholder name used by generated help output and parse errors.
-     * @param description  Human-readable parameter description used by generated help output.
+     * @param description  Optional human-readable parameter description used by generated help output.
      */
-    explicit parameter_base(std::string_view name, std::string_view description);
+    explicit parameter_base(std::string_view name, std::optional<std::string_view> description = std::nullopt);
 
     /** Destroys the parameter definition. */
     virtual ~parameter_base() = default;
@@ -42,9 +43,9 @@ public:
     /**
      * Returns the parameter description.
      *
-     * @returns Human-readable description used by generated help output.
+     * @returns Human-readable description or an empty optional if no description was configured.
      */
-    std::string const& description() const noexcept;
+    std::optional<std::string> const& description() const noexcept;
 
     /**
      * Returns generated help usage for this parameter.
@@ -80,7 +81,7 @@ public:
 
 private:
     std::string name_;
-    std::string description_;
+    std::optional<std::string> description_;
 };
 
 } // namespace kaycxx::cli

@@ -23,6 +23,7 @@ suite("command") {
         auto description = std::string("Example command");
         auto author = std::string("Example Author");
         auto email = std::string("author@example.com");
+        auto bugs = std::string("https://example.com/issues");
         auto copyright = std::string("Copyright (c) 2026 Example Author");
         auto license = std::string("Licensed under the MIT License");
 
@@ -31,6 +32,7 @@ suite("command") {
             .description = std::string_view(description),
             .author = std::string_view(author),
             .email = std::string_view(email),
+            .bugs = std::string_view(bugs),
             .copyright = std::string_view(copyright),
             .license = std::string_view(license)
         });
@@ -40,6 +42,7 @@ suite("command") {
         description = "changed";
         author = "changed";
         email = "changed";
+        bugs = "changed";
         copyright = "changed";
         license = "changed";
 
@@ -48,6 +51,7 @@ suite("command") {
         assert_equal(app.description().value(), "Example command");
         assert_equal(app.author().value(), "Example Author");
         assert_equal(app.email().value(), "author@example.com");
+        assert_equal(app.bugs().value(), "https://example.com/issues");
         assert_equal(app.copyright().value(), "Copyright (c) 2026 Example Author");
         assert_equal(app.license().value(), "Licensed under the MIT License");
     });
@@ -59,6 +63,7 @@ suite("command") {
         assert_false(app.description().has_value());
         assert_false(app.author().has_value());
         assert_false(app.email().has_value());
+        assert_false(app.bugs().has_value());
         assert_false(app.copyright().has_value());
         assert_false(app.license().has_value());
     });
@@ -101,15 +106,35 @@ suite("command") {
         app.option<int>("count", 'c', "COUNT", "Number of repetitions");
         app.parameter<std::string>("INPUT", "Input file");
         app.parameters<std::string>("OUTPUT", "Output files");
+        app.flag("undocumented-switch-with-long-usage");
+        app.parameter<std::string>("UNDOCUMENTED_PARAMETER_WITH_LONG_USAGE");
         auto output = std::ostringstream();
 
         auto const exit_code = app.print_help(output);
         auto const text = output.str();
 
         assert_equal(exit_code, 0);
-        assert_contain(text, "-q, --quiet   Suppress output");
+        assert_contain(text, "-q, --quiet           Suppress output");
         assert_contain(text, "-c, --count <COUNT>   Number of repetitions");
-        assert_contain(text, "<INPUT>   Input file");
+        assert_contain(text, "<INPUT>       Input file");
         assert_contain(text, "<OUTPUT>...   Output files");
+    });
+
+    it("omits arguments without descriptions from help details", [] {
+        auto app = command("example");
+        app.flag("quiet", 'q');
+        app.option<int>("count", 'c', "COUNT");
+        app.parameter<std::string>("INPUT");
+        app.parameters<std::string>("OUTPUT");
+        auto output = std::ostringstream();
+
+        app.print_help(output);
+        auto const text = output.str();
+
+        assert_contain(text, "Usage: example [OPTION]... <INPUT> <OUTPUT>...");
+        assert_not_contain(text, "--quiet");
+        assert_not_contain(text, "--count");
+        assert_not_contain(text, "\n  <INPUT>");
+        assert_not_contain(text, "\n  <OUTPUT>");
     });
 }

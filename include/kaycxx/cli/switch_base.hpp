@@ -26,18 +26,18 @@ public:
      * Creates a switch without a short alias.
      *
      * @param name         Long switch name without the leading `--`.
-     * @param description  Human-readable description used by generated help output.
+     * @param description  Optional human-readable description used by generated help output.
      */
-    explicit switch_base(std::string_view name, std::string_view description);
+    explicit switch_base(std::string_view name, std::optional<std::string_view> description = std::nullopt);
 
     /**
      * Creates a switch with a short alias.
      *
      * @param name         Long switch name without the leading `--`.
      * @param alias        Short switch alias without the leading `-`.
-     * @param description  Human-readable description used by generated help output.
+     * @param description  Optional human-readable description used by generated help output.
      */
-    explicit switch_base(std::string_view name, char alias, std::string_view description);
+    explicit switch_base(std::string_view name, char alias, std::optional<std::string_view> description = std::nullopt);
 
     /** Destroys the switch definition. */
     virtual ~switch_base() = default;
@@ -59,9 +59,9 @@ public:
     /**
      * Returns the switch description.
      *
-     * @returns Human-readable description used by generated help output.
+     * @returns Human-readable description or an empty optional if no description was configured.
      */
-    std::string const& description() const noexcept;
+    std::optional<std::string> const& description() const noexcept;
 
     /**
      * Returns generated help usage for this switch.
@@ -92,7 +92,7 @@ public:
 private:
     std::string name_;
     std::optional<char> alias_;
-    std::string description_;
+    std::optional<std::string> description_;
 };
 
 } // namespace kaycxx::cli

@@ -23,7 +23,7 @@ suite("option") {
         assert_equal(definition.name(), "count");
         assert_equal(definition.alias().value(), 'c');
         assert_equal(definition.value_name(), "COUNT");
-        assert_equal(definition.description(), "Number of repetitions");
+        assert_equal(definition.description().value(), "Number of repetitions");
         assert_true(definition.expects_value());
     });
 

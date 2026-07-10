@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 #include <kaycxx/cli/command.hpp>
+
+#include "detail/string.hpp"
+
 #include <kaycxx/cli/parse_error.hpp>
 
 #include <algorithm>
@@ -56,6 +59,7 @@ command::command(std::string_view name, command_options options)
       version_(copy_option(options.version)),
       author_(copy_option(options.author)),
       email_(copy_option(options.email)),
+      bugs_(copy_option(options.bugs)),
       copyright_(copy_option(options.copyright)),
       license_(copy_option(options.license)),
       description_(copy_option(options.description))
@@ -77,6 +81,10 @@ std::optional<std::string> const& command::email() const noexcept {
     return email_;
 }
 
+std::optional<std::string> const& command::bugs() const noexcept {
+    return bugs_;
+}
+
 std::optional<std::string> const& command::license() const noexcept {
     return license_;
 }
@@ -89,14 +97,14 @@ std::optional<std::string> const& command::description() const noexcept {
     return description_;
 }
 
-cli::flag_handle command::flag(std::string_view name, std::string_view description) {
+cli::flag_handle command::flag(std::string_view name, std::optional<std::string_view> description) {
     auto item = std::make_unique<cli::flag>(name, description);
     auto& definition = *item;
     switches_.push_back(std::move(item));
     return cli::flag_handle(definition);
 }
 
-cli::flag_handle command::flag(std::string_view name, char alias, std::string_view description) {
+cli::flag_handle command::flag(std::string_view name, char alias, std::optional<std::string_view> description) {
     auto item = std::make_unique<cli::flag>(name, alias, description);
     auto& definition = *item;
     switches_.push_back(std::move(item));
@@ -288,13 +296,86 @@ int command::print_help() const {
     return print_help(std::cout);
 }
 
-int command::print_help(std::ostream& out) const {
-    out << "help\n";
+bool command::has_described_switches() const noexcept {
     for (auto const& item : switches_) {
-        out << item->usage() << "   " << item->description() << '\n';
+        if (item->description()) {
+            return true;
+        }
     }
+    return false;
+}
+
+bool command::has_described_parameters() const noexcept {
     for (auto const& item : parameters_) {
-        out << item->usage() << "   " << item->description() << '\n';
+        if (item->description()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::size_t command::max_switch_usage_length() const {
+    auto result = std::size_t(0);
+    for (auto const& item : switches_) {
+        if (item->description()) {
+            result = std::max(result, item->usage().size());
+        }
+    }
+    return result;
+}
+
+std::size_t command::max_parameter_usage_length() const {
+    auto result = std::size_t(0);
+    for (auto const& item : parameters_) {
+        if (item->description()) {
+            result = std::max(result, item->usage().size());
+        }
+    }
+    return result;
+}
+
+int command::print_help(std::ostream& out) const {
+    auto const terminal_width = detail::terminal_width(out);
+    auto const available_line_length = terminal_width > 1 ? terminal_width - 1 : std::size_t(1);
+
+    out << "Usage: " << name_;
+    if (!switches_.empty()) {
+        out << " [OPTION]...";
+    }
+    for (auto const& parameter : parameters_) {
+        out << " " << parameter->usage();
+    }
+    out << '\n';
+    if (description_.has_value()) {
+        out << detail::wrap(*description_, available_line_length) << '\n';
+    }
+    if (has_described_switches()) {
+        auto const max_usage_length = max_switch_usage_length();
+        auto const indent = max_usage_length + 5;
+        auto const line_length = available_line_length > indent ? available_line_length - indent : std::size_t(1);
+        out << '\n';
+        for (auto const& item : switches_) {
+            if (auto& description = item->description()) {
+                auto const usage = item->usage();
+                out << "  " << usage << std::string(max_usage_length - usage.size() + 3, ' ') << detail::wrap(*description, line_length, indent) << '\n';
+            }
+        }
+    }
+    if (has_described_parameters()) {
+        auto const max_usage_length = max_parameter_usage_length();
+        auto const indent = max_usage_length + 5;
+        auto const line_length = available_line_length > indent ? available_line_length - indent : std::size_t(1);
+        out << '\n';
+        for (auto const& item : parameters_) {
+            if (auto& description = item->description()) {
+                auto const usage = item->usage();
+                out << "  " << usage << std::string(max_usage_length - usage.size() + 3, ' ') << detail::wrap(*description, line_length, indent) << '\n';
+            }
+        }
+    }
+    if (bugs_.has_value()) {
+        out << '\n';
+        out << "Report bugs to <" << *bugs_ << ">\n";
     }
     return 0;
 }

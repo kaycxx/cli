@@ -55,9 +55,9 @@ public:
      *
      * @param name         Long option name without the leading `--`.
      * @param value_name   Placeholder name for the option value used by generated help output.
-     * @param description  Human-readable option description used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
      */
-    explicit option(std::string_view name, std::string_view value_name, std::string_view description)
+    explicit option(std::string_view name, std::string_view value_name, std::optional<std::string_view> description = std::nullopt)
         : option_base(name, description),
           value_name_(value_name) {}
 
@@ -67,9 +67,9 @@ public:
      * @param name         Long option name without the leading `--`.
      * @param alias        Short option alias without the leading `-`.
      * @param value_name   Placeholder name for the option value used by generated help output.
-     * @param description  Human-readable option description used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
      */
-    explicit option(std::string_view name, char alias, std::string_view value_name, std::string_view description)
+    explicit option(std::string_view name, char alias, std::string_view value_name, std::optional<std::string_view> description = std::nullopt)
         : option_base(name, alias, description),
           value_name_(value_name) {}
 
