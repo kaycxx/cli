@@ -1,0 +1,86 @@
+// SPDX-FileCopyrightText: 2026 Klaus Reimer <k@ailis.de>
+// SPDX-License-Identifier: MIT
+
+/**
+ * @file
+ * Defines the common base class for positional parameters.
+ */
+
+#pragma once
+
+#include <any>
+#include <cstddef>
+#include <span>
+#include <string>
+#include <string_view>
+
+namespace kaycxx::cli {
+
+/**
+ * Common base class for positional parameter definitions.
+ */
+class parameter_base {
+public:
+    /**
+     * Creates a positional parameter definition.
+     *
+     * @param name         Placeholder name used by generated help output and parse errors.
+     * @param description  Human-readable parameter description used by generated help output.
+     */
+    explicit parameter_base(std::string_view name, std::string_view description);
+
+    /** Destroys the parameter definition. */
+    virtual ~parameter_base() = default;
+
+    /**
+     * Returns the parameter name.
+     *
+     * @returns Placeholder name used by generated help output and parse errors.
+     */
+    std::string const& name() const noexcept;
+
+    /**
+     * Returns the parameter description.
+     *
+     * @returns Human-readable description used by generated help output.
+     */
+    std::string const& description() const noexcept;
+
+    /**
+     * Returns generated help usage for this parameter.
+     *
+     * @returns Usage text.
+     */
+    virtual std::string usage() const = 0;
+
+    /**
+     * Returns the minimum number of values consumed by this parameter.
+     *
+     * @returns Minimum value count.
+     */
+    virtual std::size_t min_count() const noexcept = 0;
+
+    /**
+     * Returns the maximum number of values consumed by this parameter.
+     *
+     * @returns Maximum value count.
+     */
+    virtual std::size_t max_count() const noexcept = 0;
+
+    /**
+     * Parses positional parameter values.
+     *
+     * @param values  Value texts to parse.
+     *
+     * @returns Parsed values stored in type-erased form.
+     *
+     * @throws parse_error  When a value is syntactically invalid or a required value is missing.
+     */
+    virtual std::any parse_values(std::span<std::string_view const> values) const = 0;
+
+private:
+    std::string name_;
+    std::string description_;
+};
+
+} // namespace kaycxx::cli
