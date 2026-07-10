@@ -72,21 +72,21 @@ c++ main.o $(pkg-config --libs kaycxx-cli)
 ## Build From Source
 
 ```sh
-cmake -B build
-cmake --build build
+cmake --preset release
+cmake --build --preset release
 ```
 
 A shared library is built by default. For a static build:
 
 ```sh
-cmake -B build -D BUILD_SHARED_LIBS=OFF
-cmake --build build
+cmake --preset release -D BUILD_SHARED_LIBS=OFF
+cmake --build --preset release
 ```
 
 ## Install
 
 ```sh
-cmake --install build --prefix /tmp/root
+cmake --install build/release --prefix /tmp/root
 ```
 
 If no prefix is specified, CMake installs to `/usr/local` by default on Unix systems.
@@ -96,16 +96,17 @@ If no prefix is specified, CMake installs to `/usr/local` by default on Unix sys
 Run all tests:
 
 ```sh
-cmake --build build --target test
+cmake --preset debug
+cmake --build --preset debug --target test
 ```
 
 Generate API documentation with Doxygen:
 
 ```sh
-cmake --build build --target apidoc
+cmake --build --preset debug --target apidoc
 ```
 
-The generated HTML documentation is written to `build/apidoc/html/index.html`.
+The generated HTML documentation is written to `build/debug/apidoc/html/index.html`.
 
 [GitHub]: https://github.com/kaycxx/cli
 [API Documentation]: https://kaycxx.github.io/cli/
