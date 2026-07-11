@@ -14,7 +14,6 @@ function(git_require target version)
         return()
     endif()
 
-    string(REGEX REPLACE "^v" "" version "${version}")
     cmake_parse_arguments(PARSE_ARGV 2 ARG "" "PACKAGE;URL" "")
 
     if(ARG_UNPARSED_ARGUMENTS)
