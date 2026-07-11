@@ -15,8 +15,6 @@ include(GNUInstallDirs)
 include(cmake/CompilerWarnings.cmake)
 include(cmake/GitDeps.cmake)
 
-# git_require(kaycxx::core v1.0.0)
-
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -58,7 +56,6 @@ target_include_directories(${PACKAGE_NAME} PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_compile_features(${PACKAGE_NAME} PUBLIC cxx_std_${CMAKE_CXX_STANDARD})
-# target_link_libraries(${PACKAGE_NAME} PUBLIC kaycxx::core)
 
 include(cmake/Install.cmake)
 

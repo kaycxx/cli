@@ -5,7 +5,7 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/GitDeps.cmake")
 
-git_require(kaycxx::test v0.0.2)
+git_require(kaycxx::test 0.0.2)
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
     test/*.cpp

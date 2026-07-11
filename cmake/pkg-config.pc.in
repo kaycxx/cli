@@ -6,6 +6,5 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 Name: @PACKAGE_NAME@
 Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
-# Requires: kaycxx-core >= 1.0.0
 Libs: -L${libdir} -l@PACKAGE_NAME@
 Cflags: -I${includedir}
