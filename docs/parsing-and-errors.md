@@ -1,31 +1,26 @@
 # Parsing and Errors
 
-`command::parse` accepts `argc` and `argv` directly from `main` and returns a `parse_result`.
+`command::parse` accepts `argc` and `argv` directly from `main` and returns the parsed arguments.
 
 ```cpp
-auto result = app.parse(argc, argv);
+auto arguments = app.parse(argc, argv);
 ```
 
-A result represents exactly one of three states:
+The returned `args` object is movable but not copyable. Keep it by value with `auto`.
 
-- Parsed arguments are available through `result.args()`.
-- The user requested `--help`.
-- The user requested `--version`.
+Flags and options are parsed immediately. Unknown switches, missing option values, and invalid option values therefore produce an error during `parse()`.
 
-Check help and version before accessing arguments. Calling `args()` for either request throws `std::logic_error` because normal argument parsing intentionally did not complete.
+Positional arguments are retained as strings and validated lazily. Accessing any positional parameter through `args::get()` or `args::has()` validates and converts all positional parameters once.
+
+## Explicit Validation
+
+Call `args::validate()` to validate positional parameters without reading one of them.
 
 ```cpp
-if (result.help_requested()) {
-    return app.print_help();
-}
-if (result.version_requested()) {
-    return app.print_version();
-}
-
-auto& arguments = result.args();
+arguments.validate();
 ```
 
-Parsed arguments cannot be copied. Bind the returned reference with `auto&` when it is used more than once.
+This is useful when a command defines positional parameters but does not otherwise access every execution path through their handles. Calling `validate()` repeatedly has no effect after the first successful validation.
 
 ## Argument Order
 
@@ -38,7 +33,7 @@ example -- --name-starting-with-dashes
 
 ## Parse Errors
 
-Invalid command lines throw `parse_error`. This includes unknown switches, missing option values, failed value conversion, missing required positional parameters, and unexpected positional arguments.
+Invalid command lines throw `parse_error`. Switch errors are thrown by `command::parse()`. Missing, unexpected, or invalid positional parameters are thrown when positional validation is first triggered.
 
 Catch the exception at the application boundary to produce a concise command-line error and nonzero exit code.
 
@@ -54,15 +49,8 @@ int main(int argc, char* argv[]) {
     auto input = app.parameter<std::string>("INPUT", "Input file");
 
     try {
-        auto result = app.parse(argc, argv);
-        if (result.help_requested()) {
-            return app.print_help();
-        }
-        if (result.version_requested()) {
-            return app.print_version();
-        }
-
-        process(result.args().get(input));
+        auto arguments = app.parse(argc, argv);
+        process(arguments.get(input));
         return 0;
     } catch (parse_error const& error) {
         std::cerr << app.name() << ": " << error.what() << '\n';

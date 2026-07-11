@@ -8,15 +8,15 @@
 #include <string_view>
 #include <vector>
 
+#include <kaycxx/cli/args.hpp>
 #include <kaycxx/cli/command.hpp>
-#include <kaycxx/cli/parse_result.hpp>
 
 namespace kaycxx::cli::test_support {
 
-inline parse_result parse_arguments(command& app, std::initializer_list<std::string_view> arguments);
+inline args parse_arguments(command const& app, std::initializer_list<std::string_view> arguments);
 
 /** Parses a compact list of command-line arguments for a test. */
-inline parse_result parse_arguments(command& app, std::initializer_list<std::string_view> arguments) {
+inline args parse_arguments(command const& app, std::initializer_list<std::string_view> arguments) {
     auto values = std::vector<std::string>();
     values.reserve(arguments.size() + 1);
     values.push_back(app.name());

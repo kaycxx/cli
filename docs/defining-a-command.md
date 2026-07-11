@@ -13,6 +13,7 @@ int main() {
         .description = "Convert input files",
         .author = "Example Author",
         .email = "author@example.com",
+        .bugs = "https://example.com/issues",
         .copyright = "Copyright (c) 2026 Example Author",
         .license = "Licensed under the MIT License"
     });
@@ -38,18 +39,25 @@ Descriptions are optional. `print_help()` omits arguments without descriptions f
 
 ## Help and Version Output
 
-`command::parse()` recognizes `--help` and `--version`. Its return value then reports the request through `help_requested()` or `version_requested()`, leaving the application in control of the corresponding output and exit code.
+Help and version switches are regular flags. The application chooses their names, aliases, descriptions, and language, then handles them like any other flag.
 
 ```cpp
-auto result = app.parse(argc, argv);
+auto help = app.flag("help", 'h', "Show help");
+auto version = app.flag("version", 'V', "Show version information");
 
-if (result.help_requested()) {
+auto arguments = app.parse(argc, argv);
+
+if (arguments.get(help)) {
     return app.print_help();
 }
-if (result.version_requested()) {
+if (arguments.get(version)) {
     return app.print_version();
 }
 ```
+
+`print_help()` and `print_version()` are convenience methods that generate and write formatted help and version text from the command metadata and registered arguments. Both return `0`, so their result can be returned directly from `main` as the process exit code.
+
+Using these methods is optional. An application can instead write its own help or version text and return an appropriate exit code itself.
 
 The overloads accepting `std::ostream&` can write the output somewhere other than standard output, which is useful for embedding and testing.
 
@@ -58,4 +66,4 @@ app.print_help(output);
 app.print_version(output);
 ```
 
-Because help and version requests return before normal argument validation, a command with required positional parameters can still handle `--help` and `--version` without those parameters.
+Positional parameters are validated lazily when first accessed. Help and version flags can therefore be handled before missing required positional parameters produce an error.

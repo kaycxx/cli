@@ -16,7 +16,7 @@ The description is optional. A flag without a description remains parseable but 
 Both `--quiet` and `-q` set the first flag. Read flags with `args::get`. An absent flag returns `false`.
 
 ```cpp
-auto& arguments = result.args();
+auto arguments = app.parse(argc, argv);
 
 if (arguments.get(quiet)) {
     // Suppress output.

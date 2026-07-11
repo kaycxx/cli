@@ -50,8 +50,7 @@ suite("parse_value") {
         auto ratio = app.option<double>("ratio", "RATIO", "Ratio");
         auto name = app.option<std::string>("name", "NAME", "Name");
 
-        auto result = parse_arguments(app, { "--count=42", "--ratio=1.5", "--name=example" });
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, { "--count=42", "--ratio=1.5", "--name=example" });
 
         assert_equal(arguments.get(count), 42);
         assert_close(arguments.get(ratio), 1.5);
@@ -60,7 +59,7 @@ suite("parse_value") {
 
     it("rejects invalid and trailing numeric text", [] {
         auto app = command("example");
-        app.option<int>("count", "COUNT", "Count");
+        [[maybe_unused]] auto count = app.option<int>("count", "COUNT", "Count");
 
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--count=abc" });
@@ -72,7 +71,7 @@ suite("parse_value") {
 
     it("reports numeric values outside the target range", [] {
         auto app = command("example");
-        app.option<int>("count", "COUNT", "Count");
+        [[maybe_unused]] auto count = app.option<int>("count", "COUNT", "Count");
 
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--count=999999999999999999999999999999999999" });
@@ -85,12 +84,12 @@ suite("parse_value") {
 
         auto result = parse_arguments(app, { "--color=green" });
 
-        assert_equal(result.args().get(color), test_types::color::green);
+        assert_equal(result.get(color), test_types::color::green);
     });
 
     it("includes custom conversion errors", [] {
         auto app = command("example");
-        app.option<test_types::color>("color", "COLOR", "Color");
+        [[maybe_unused]] auto color = app.option<test_types::color>("color", "COLOR", "Color");
 
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--color=purple" });

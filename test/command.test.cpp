@@ -73,8 +73,7 @@ suite("command") {
         auto verbose = app.flag("verbose", 'v', "Enable verbose output");
         auto values = app.parameters<std::string>("VALUE", "Values");
 
-        auto result = parse_arguments(app, { "first", "--verbose", "second" });
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, { "first", "--verbose", "second" });
 
         assert_true(arguments.get(verbose));
         assert_equal(arguments.get(values), std::vector<std::string>{ "first", "second" });
@@ -86,7 +85,7 @@ suite("command") {
 
         auto result = parse_arguments(app, { "--", "--verbose", "-v" });
 
-        assert_equal(result.args().get(values), std::vector<std::string>{ "--verbose", "-v" });
+        assert_equal(result.get(values), std::vector<std::string>{ "--verbose", "-v" });
     });
 
     it("rejects unknown long and short options", [] {
@@ -102,13 +101,8 @@ suite("command") {
 
     it("includes command metadata in help output", [] {
         auto app = command("example", {
-            .version = "1.2.3",
             .description = "Example command",
-            .author = "Example Author",
-            .email = "author@example.com",
-            .bugs = "https://example.com/issues",
-            .copyright = "Copyright (c) 2026 Example Author",
-            .license = "Licensed under the MIT License"
+            .bugs = "https://example.com/issues"
         });
         auto output = std::ostringstream();
 
@@ -127,10 +121,8 @@ suite("command") {
     it("includes command metadata in version output", [] {
         auto app = command("example", {
             .version = "1.2.3",
-            .description = "Example command",
             .author = "Example Author",
             .email = "author@example.com",
-            .bugs = "https://example.com/issues",
             .copyright = "Copyright (c) 2026 Example Author",
             .license = "Licensed under the MIT License"
         });
@@ -152,12 +144,12 @@ suite("command") {
 
     it("includes registered arguments in help output", [] {
         auto app = command("example");
-        app.flag("quiet", 'q', "Suppress output");
-        app.option<int>("count", 'c', "COUNT", "Number of repetitions");
-        app.parameter<std::string>("INPUT", "Input file");
-        app.parameters<std::string>("OUTPUT", "Output files");
-        app.flag("undocumented-switch-with-long-usage");
-        app.parameter<std::string>("UNDOCUMENTED_PARAMETER_WITH_LONG_USAGE");
+        [[maybe_unused]] auto quiet = app.flag("quiet", 'q', "Suppress output");
+        [[maybe_unused]] auto count = app.option<int>("count", 'c', "COUNT", "Number of repetitions");
+        [[maybe_unused]] auto input = app.parameter<std::string>("INPUT", "Input file");
+        [[maybe_unused]] auto output_files = app.parameters<std::string>("OUTPUT", "Output files");
+        [[maybe_unused]] auto undocumented_switch = app.flag("undocumented-switch-with-long-usage");
+        [[maybe_unused]] auto undocumented_parameter = app.parameter<std::string>("UNDOCUMENTED_PARAMETER_WITH_LONG_USAGE");
         auto output = std::ostringstream();
 
         auto const exit_code = app.print_help(output);
@@ -172,10 +164,10 @@ suite("command") {
 
     it("omits arguments without descriptions from help details", [] {
         auto app = command("example");
-        app.flag("quiet", 'q');
-        app.option<int>("count", 'c', "COUNT");
-        app.parameter<std::string>("INPUT");
-        app.parameters<std::string>("OUTPUT");
+        [[maybe_unused]] auto quiet = app.flag("quiet", 'q');
+        [[maybe_unused]] auto count = app.option<int>("count", 'c', "COUNT");
+        [[maybe_unused]] auto input = app.parameter<std::string>("INPUT");
+        [[maybe_unused]] auto output_files = app.parameters<std::string>("OUTPUT");
         auto output = std::ostringstream();
 
         app.print_help(output);

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <any>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -25,8 +26,13 @@ namespace kaycxx::cli {
 /**
  * Parsed command line arguments.
  *
- * Instances are returned by parse_result::args() when command parsing completed normally. Values are queried with the handles returned by command registration methods. Parsed
- * arguments have unique ownership and can be moved but not copied.
+ * Instances are returned directly by command::parse(). Values are queried with the handles returned by command registration methods.
+ *
+ * Parsed arguments have unique ownership and can be moved but not copied.
+ *
+ * Positional parameters are validated and converted lazily when first accessed or when validate() is called explicitly.
+ *
+ * The command that created an instance must outlive it and all handles used to access it.
  */
 class args {
 public:
@@ -41,6 +47,15 @@ public:
 
     /** Moves parsed arguments. */
     args& operator=(args&&) noexcept = default;
+
+    /**
+     * Validates and converts all positional parameters.
+     *
+     * Calling this method repeatedly has no effect after the first successful validation.
+     *
+     * @throws parse_error  When a required positional parameter is missing, an unexpected positional argument is present, or conversion fails.
+     */
+    void validate() const;
 
     /**
      * Checks whether a flag was set.
@@ -87,9 +102,12 @@ public:
      * @param parameter  Parameter handle returned by command::parameter().
      *
      * @returns Parsed parameter value.
+     *
+     * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
     T const& get(parameter_handle<T> const& parameter) const {
+        validate();
         return std::any_cast<T const&>(parameters_.at(&parameter.definition()));
     }
 
@@ -101,9 +119,12 @@ public:
      * @param parameter  Parameter handle returned by command::parameter().
      *
      * @returns True if the parameter was provided or has a default value, false otherwise.
+     *
+     * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
     bool has(parameter_handle<T> const& parameter) const {
+        validate();
         return parameters_.contains(&parameter.definition());
     }
 
@@ -115,9 +136,12 @@ public:
      * @param parameters  Parameter list handle returned by command::parameters().
      *
      * @returns Parsed parameter values.
+     *
+     * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
     std::vector<T> const& get(parameters_handle<T> const& parameters) const {
+        validate();
         return std::any_cast<std::vector<T> const&>(parameters_.at(&parameters.definition()));
     }
 
@@ -129,9 +153,12 @@ public:
      * @param parameters  Parameter list handle returned by command::parameters().
      *
      * @returns True if the parameter list was provided or has default values, false otherwise.
+     *
+     * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
     bool has(parameters_handle<T> const& parameters) const {
+        validate();
         return parameters_.contains(&parameters.definition());
     }
 
@@ -140,7 +167,10 @@ private:
 
     std::unordered_set<switch_base const*> flags_;
     std::unordered_map<switch_base const*, std::any> values_;
-    std::unordered_map<parameter_base const*, std::any> parameters_;
+    std::vector<parameter_base const*> parameter_definitions_;
+    std::vector<std::string> positional_values_;
+    mutable std::unordered_map<parameter_base const*, std::any> parameters_;
+    mutable bool validated_ = false;
 };
 
 } // namespace kaycxx::cli

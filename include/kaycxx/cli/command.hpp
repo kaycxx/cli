@@ -27,7 +27,6 @@
 #include <kaycxx/cli/parameter_handle.hpp>
 #include <kaycxx/cli/parameters.hpp>
 #include <kaycxx/cli/parameters_handle.hpp>
-#include <kaycxx/cli/parse_result.hpp>
 #include <kaycxx/cli/switch_base.hpp>
 
 namespace kaycxx::cli {
@@ -37,32 +36,33 @@ namespace kaycxx::cli {
  */
 struct command_options {
     /** Command version string used by version output. */
-    std::optional<std::string_view> version;
+    std::optional<std::string_view> version = std::nullopt;
 
     /** Short command description used by generated help output. */
-    std::optional<std::string_view> description;
+    std::optional<std::string_view> description = std::nullopt;
 
     /** Author name used by generated version output. */
-    std::optional<std::string_view> author;
+    std::optional<std::string_view> author = std::nullopt;
 
     /** Author contact address used by generated version output. */
-    std::optional<std::string_view> email;
+    std::optional<std::string_view> email = std::nullopt;
 
     /** Email address or website URL to which to report bugs to. */
-    std::optional<std::string_view> bugs;
+    std::optional<std::string_view> bugs = std::nullopt;
 
     /** Copyright notice used by generated version output. */
-    std::optional<std::string_view> copyright;
+    std::optional<std::string_view> copyright = std::nullopt;
 
     /** License text used by generated version output. */
-    std::optional<std::string_view> license;
+    std::optional<std::string_view> license = std::nullopt;
 };
 
 /**
  * Defines and parses a command line interface.
  *
- * A command owns all registered flags, options and positional parameters. Handles returned from registration methods are lightweight references to these owned definitions and
- * remain valid as long as the command object exists.
+ * A command owns all registered flags, options and positional parameters. Registration methods return lightweight handles referencing these owned definitions.
+ *
+ * The handles remain valid as long as the command object exists.
  */
 class command {
 public:
@@ -88,56 +88,56 @@ public:
      *
      * @returns Command name.
      */
-    std::string const& name() const noexcept;
+    [[nodiscard]] std::string const& name() const noexcept;
 
     /**
      * Returns the configured command version.
      *
      * @returns Command version or an empty optional if no version was configured.
      */
-    std::optional<std::string> const& version() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& version() const noexcept;
 
     /**
      * Returns the configured author name.
      *
      * @returns Author name or an empty optional if no author was configured.
      */
-    std::optional<std::string> const& author() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& author() const noexcept;
 
     /**
      * Returns the configured author email address.
      *
      * @returns Email address or an empty optional if no email address was configured.
      */
-    std::optional<std::string> const& email() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& email() const noexcept;
 
     /**
      * Returns the email address or URL to which to report bugs to.
      *
      * @returns Email address or URL to which to report bugs to.
      */
-    std::optional<std::string> const& bugs() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& bugs() const noexcept;
 
     /**
      * Returns the configured copyright notice.
      *
      * @returns Copyright notice or an empty optional if no copyright notice was configured.
      */
-    std::optional<std::string> const& copyright() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& copyright() const noexcept;
 
     /**
      * Returns the configured license text.
      *
      * @returns License text or an empty optional if no license text was configured.
      */
-    std::optional<std::string> const& license() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& license() const noexcept;
 
     /**
      * Returns the configured command description.
      *
      * @returns Command description or an empty optional if no description was configured.
      */
-    std::optional<std::string> const& description() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& description() const noexcept;
 
     /**
      * Registers a flag without a short alias.
@@ -147,7 +147,7 @@ public:
      *
      * @returns Handle used to query the parsed flag state.
      */
-    cli::flag_handle flag(std::string_view name, std::optional<std::string_view> description = std::nullopt);
+    [[nodiscard]] cli::flag_handle flag(std::string_view name, std::optional<std::string_view> description = std::nullopt);
 
     /**
      * Registers a flag with a short alias.
@@ -158,7 +158,7 @@ public:
      *
      * @returns Handle used to query the parsed flag state.
      */
-    cli::flag_handle flag(std::string_view name, char alias, std::optional<std::string_view> description = std::nullopt);
+    [[nodiscard]] cli::flag_handle flag(std::string_view name, char alias, std::optional<std::string_view> description = std::nullopt);
 
     /**
      * Registers an option without a short alias.
@@ -172,7 +172,7 @@ public:
      * @returns Handle used to configure the option and query the parsed option value.
      */
     template <parseable_value T>
-    cli::option_handle<T> option(
+    [[nodiscard]] cli::option_handle<T> option(
         std::string_view name,
         std::string_view value_name,
         std::optional<std::string_view> description = std::nullopt
@@ -196,7 +196,7 @@ public:
      * @returns Handle used to configure the option and query the parsed option value.
      */
     template <parseable_value T>
-    cli::option_handle<T> option(
+    [[nodiscard]] cli::option_handle<T> option(
         std::string_view name,
         char alias,
         std::string_view value_name,
@@ -219,7 +219,7 @@ public:
      * @returns Handle used to configure the parameter and query the parsed parameter value.
      */
     template <parseable_value T>
-    cli::parameter_handle<T> parameter(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
+    [[nodiscard]] cli::parameter_handle<T> parameter(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
         auto item = std::make_unique<cli::parameter<T>>(name, description);
         auto& definition = *item;
         parameters_.push_back(std::move(item));
@@ -237,7 +237,7 @@ public:
      * @returns Handle used to configure the parameter list and query the parsed values.
      */
     template <parseable_value T>
-    cli::parameters_handle<T> parameters(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
+    [[nodiscard]] cli::parameters_handle<T> parameters(std::string_view name, std::optional<std::string_view> description = std::nullopt) {
         auto item = std::make_unique<cli::parameters<T>>(name, description);
         auto& definition = *item;
         parameters_.push_back(std::move(item));
@@ -250,11 +250,14 @@ public:
      * @param argc  Argument count as received by `main`.
      * @param argv  Argument values as received by `main`.
      *
-     * @returns Parse result containing parsed arguments or a request for generated help/version output.
+     * Positional arguments are stored without validation. They are validated and converted when first accessed through the returned argument collection or when
+     * args::validate() is called explicitly.
      *
-     * @throws parse_error  When command line arguments are invalid.
+     * @returns Parsed command-line arguments.
+     *
+     * @throws parse_error  When a switch is unknown, an option value is missing, or an option value cannot be converted.
      */
-    parse_result parse(int argc, char *argv[]);
+    [[nodiscard]] cli::args parse(int argc, char *argv[]) const;
 
     /**
      * Writes generated help output to standard output.
@@ -289,14 +292,13 @@ public:
     int print_version(std::ostream& out) const;
 
 private:
-    switch_base const* find_switch(std::string_view name) const noexcept;
-    switch_base const* find_switch(char alias) const noexcept;
-    bool has_described_switches() const noexcept;
-    bool has_described_parameters() const noexcept;
-    std::size_t max_switch_usage_length() const;
-    std::size_t max_parameter_usage_length() const;
+    [[nodiscard]] switch_base const* find_switch(std::string_view name) const noexcept;
+    [[nodiscard]] switch_base const* find_switch(char alias) const noexcept;
+    [[nodiscard]] bool has_described_switches() const noexcept;
+    [[nodiscard]] bool has_described_parameters() const noexcept;
+    [[nodiscard]] std::size_t max_switch_usage_length() const;
+    [[nodiscard]] std::size_t max_parameter_usage_length() const;
     void apply_option_defaults(args& result) const;
-    void parse_parameters(args& result, std::vector<std::string_view> const& values) const;
 
     std::string name_;
     std::optional<std::string> version_;

@@ -17,22 +17,24 @@ Requires C++26.
 using namespace kaycxx::cli;
 
 int main(int argc, char* argv[]) {
-    auto app = command("example");
+    auto app = command("example", { .version = "1.0.0" });
 
+    auto help = app.flag("help", 'h', "Show help");
+    auto version = app.flag("version", 'V', "Show version information");
     auto verbose = app.flag("verbose", 'v', "Enable verbose output");
     auto repetitions = app.option<int>("count", 'c', "COUNT", "Number of repetitions").default_value(1);
     auto input = app.parameter<std::string>("INPUT", "Input file name");
 
     try {
-        auto result = app.parse(argc, argv);
-        if (result.help_requested()) {
+        auto arguments = app.parse(argc, argv);
+        if (arguments.get(help)) {
             return app.print_help();
         }
-        if (result.version_requested()) {
+        if (arguments.get(version)) {
             return app.print_version();
         }
 
-        auto& arguments = result.args();
+        arguments.validate();
         for (auto remaining = arguments.get(repetitions); remaining > 0; --remaining) {
             if (arguments.get(verbose)) {
                 std::cout << "Input: ";
@@ -67,7 +69,7 @@ c++ main.o $(pkg-config --libs kaycxx-cli)
 - [Flags and Options] explains boolean flags, typed options, short aliases, defaults, and value access.
 - [Positional Parameters] explains single and repeated parameters, defaults, value counts, and argument allocation.
 - [Value Conversion] explains built-in conversions and how custom types provide an ADL-discovered `from_string` function.
-- [Parsing and Errors] explains parse results, help and version requests, the `--` separator, and `parse_error` handling.
+- [Parsing and Errors] explains parsing, lazy positional validation, the `--` separator, and `parse_error` handling.
 
 ## Build From Source
 

@@ -29,8 +29,9 @@ suite("args") {
         auto input = app.parameter<std::string>("INPUT", "Input file");
         auto values = app.parameters<int>("VALUE", "Values");
 
-        auto result = parse_arguments(app, { "--verbose", "--count", "3", "input.txt", "10", "20" });
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, { "--verbose", "--count", "3", "input.txt", "10", "20" });
+        arguments.validate();
+        arguments.validate();
 
         assert_true(arguments.get(verbose));
         assert_false(arguments.get(quiet));
@@ -39,5 +40,26 @@ suite("args") {
         assert_false(arguments.has(output));
         assert_equal(arguments.get(input), "input.txt");
         assert_equal(arguments.get(values), std::vector<int>{ 10, 20 });
+    });
+
+    it("delays positional validation until requested", [] {
+        auto app = command("example");
+        auto help = app.flag("help", 'h', "Show help");
+        auto version = app.flag("version", 'V', "Show version");
+        auto input = app.parameter<std::string>("INPUT", "Input file");
+
+        auto help_arguments = parse_arguments(app, { "--help" });
+        auto version_arguments = parse_arguments(app, { "-V" });
+
+        assert_true(help_arguments.get(help));
+        assert_false(help_arguments.get(version));
+        assert_false(version_arguments.get(help));
+        assert_true(version_arguments.get(version));
+        assert_throw<parse_error>([&] {
+            help_arguments.get(input);
+        }, "Missing parameter <INPUT>");
+        assert_throw<parse_error>([&] {
+            version_arguments.validate();
+        }, "Missing parameter <INPUT>");
     });
 }

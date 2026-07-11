@@ -40,14 +40,14 @@ suite("flag") {
         auto short_result = parse_arguments(app, { "-q" });
         auto absent_result = parse_arguments(app, {});
 
-        assert_true(long_result.args().get(quiet));
-        assert_true(short_result.args().get(quiet));
-        assert_false(absent_result.args().get(quiet));
+        assert_true(long_result.get(quiet));
+        assert_true(short_result.get(quiet));
+        assert_false(absent_result.get(quiet));
     });
 
     it("rejects assigned values", [] {
         auto app = command("example");
-        app.flag("quiet", 'q', "Suppress output");
+        [[maybe_unused]] auto quiet = app.flag("quiet", 'q', "Suppress output");
 
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--quiet=true" });

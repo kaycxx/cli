@@ -14,7 +14,7 @@ auto format = app.parameter<std::string>("FORMAT", "Output format").default_valu
 Use the returned handles to read the values. After successful parsing, every single parameter has either its parsed value or its configured default.
 
 ```cpp
-auto& arguments = result.args();
+auto arguments = app.parse(argc, argv);
 auto const& input_file = arguments.get(input);
 auto const& output_format = arguments.get(format);
 ```

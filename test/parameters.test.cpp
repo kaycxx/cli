@@ -34,8 +34,8 @@ suite("parameters") {
         auto empty_result = parse_arguments(app, {});
         auto values_result = parse_arguments(app, { "1", "2", "3" });
 
-        assert_equal(empty_result.args().get(values), std::vector<int>());
-        assert_equal(values_result.args().get(values), std::vector<int>{ 1, 2, 3 });
+        assert_equal(empty_result.get(values), std::vector<int>());
+        assert_equal(values_result.get(values), std::vector<int>{ 1, 2, 3 });
     });
 
     it("reserves a required suffix after repeated values", [] {
@@ -43,8 +43,7 @@ suite("parameters") {
         auto sources = app.parameters<std::string>("SOURCE", "Source files").min(1);
         auto destination = app.parameter<std::string>("DEST", "Destination");
 
-        auto result = parse_arguments(app, { "one", "two", "output" });
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, { "one", "two", "output" });
 
         assert_equal(arguments.get(sources), std::vector<std::string>{ "one", "two" });
         assert_equal(arguments.get(destination), "output");
@@ -55,8 +54,7 @@ suite("parameters") {
         auto source = app.parameter<std::string>("SOURCE", "Source file");
         auto destinations = app.parameters<std::string>("DEST", "Destinations").min(1);
 
-        auto result = parse_arguments(app, { "input", "one", "two" });
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, { "input", "one", "two" });
 
         assert_equal(arguments.get(source), "input");
         assert_equal(arguments.get(destinations), std::vector<std::string>{ "one", "two" });
@@ -68,34 +66,38 @@ suite("parameters") {
 
         auto result = parse_arguments(app, {});
 
-        assert_equal(result.args().get(values), std::vector<std::string>{ "default" });
+        assert_equal(result.get(values), std::vector<std::string>{ "default" });
     });
 
     it("reports missing minimum values", [] {
         auto app = command("example");
-        app.parameters<int>("VALUE", "Values").min(2);
+        auto values = app.parameters<int>("VALUE", "Values").min(2);
 
         assert_throw<parse_error>([&] {
-            parse_arguments(app, { "1" });
+            auto arguments = parse_arguments(app, { "1" });
+            arguments.get(values);
         }, "Missing parameter <VALUE>");
     });
 
     it("reports a missing suffix after consuming the minimum prefix", [] {
         auto app = command("example");
-        app.parameters<std::string>("SOURCE", "Source files").min(1);
-        app.parameter<std::string>("DEST", "Destination");
+        auto sources = app.parameters<std::string>("SOURCE", "Source files").min(1);
+        auto destination = app.parameter<std::string>("DEST", "Destination");
 
         assert_throw<parse_error>([&] {
-            parse_arguments(app, { "input" });
+            auto arguments = parse_arguments(app, { "input" });
+            arguments.get(sources);
+            arguments.get(destination);
         }, "Missing parameter <DEST>");
     });
 
     it("rejects values beyond the maximum", [] {
         auto app = command("example");
-        app.parameters<int>("VALUE", "Values").max(2);
+        auto values = app.parameters<int>("VALUE", "Values").max(2);
 
         assert_throw<parse_error>([&] {
-            parse_arguments(app, { "1", "2", "3" });
+            auto arguments = parse_arguments(app, { "1", "2", "3" });
+            arguments.get(values);
         }, "Unexpected parameter 3");
     });
 }

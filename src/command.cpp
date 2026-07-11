@@ -13,7 +13,6 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -129,9 +128,12 @@ switch_base const* command::find_switch(char alias) const noexcept {
     return nullptr;
 }
 
-parse_result command::parse(int argc, char *argv[]) {
+cli::args command::parse(int argc, char *argv[]) const {
     auto result = args();
-    auto positional = std::vector<std::string_view>();
+    result.parameter_definitions_.reserve(parameters_.size());
+    for (auto const& parameter : parameters_) {
+        result.parameter_definitions_.push_back(parameter.get());
+    }
 
     for (auto i = 1; i < argc; ++i) {
         auto arg = std::string_view(argv[i]);
@@ -139,16 +141,9 @@ parse_result command::parse(int argc, char *argv[]) {
         if (arg == "--") {
             // All arguments after `--` separator are positional arguments, even if they look like options or flags
             while (++i < argc) {
-                positional.push_back(argv[i]);
+                result.positional_values_.emplace_back(argv[i]);
             }
             break;
-        }
-
-        if (arg == "--help") {
-            return parse_result::help();
-        }
-        if (arg == "--version") {
-            return parse_result::version();
         }
 
         // Parse long option
@@ -228,12 +223,11 @@ parse_result command::parse(int argc, char *argv[]) {
         }
 
         // Not an option or flag, so it is a positional argument
-        positional.push_back(arg);
+        result.positional_values_.emplace_back(arg);
     }
 
-    parse_parameters(result, positional);
     apply_option_defaults(result);
-    return parse_result::parsed(std::move(result));
+    return result;
 }
 
 void command::apply_option_defaults(args& result) const {
@@ -250,45 +244,6 @@ void command::apply_option_defaults(args& result) const {
         if (auto value = option->default_value()) {
             result.values_[item.get()] = std::move(*value);
         }
-    }
-}
-
-void command::parse_parameters(args& result, std::vector<std::string_view> const& values) const {
-    auto position = std::size_t(0);
-
-    for (auto i = std::size_t(0); i < parameters_.size(); ++i) {
-        auto required_after = std::size_t(0);
-        for (auto j = i + 1; j < parameters_.size(); ++j) {
-            required_after += parameters_[j]->min_count();
-        }
-
-        auto const min_count = parameters_[i]->min_count();
-        auto const max_count = std::max(parameters_[i]->max_count(), min_count);
-        auto const remaining = position < values.size() ? values.size() - position : std::size_t(0);
-
-        if (remaining < min_count) {
-            throw parse_error(std::format("Missing parameter <{}>", parameters_[i]->name()));
-        }
-
-        auto const remaining_after_min = remaining - min_count;
-        auto const available_extra = remaining_after_min > required_after ? remaining_after_min - required_after : std::size_t(0);
-        auto const max_extra = max_count > min_count ? max_count - min_count : std::size_t(0);
-        auto const take = min_count + std::min(available_extra, max_extra);
-
-        auto const parameter_values = take == 0
-            ? std::span<std::string_view const>()
-            : std::span<std::string_view const>(values.data() + position, take);
-
-        try {
-            result.parameters_[parameters_[i].get()] = parameters_[i]->parse_values(parameter_values);
-        } catch (parse_error const& error) {
-            throw parse_error(std::format("{} for parameter <{}>", error.what(), parameters_[i]->name()));
-        }
-        position += take;
-    }
-
-    if (position < values.size()) {
-        throw parse_error(std::format("Unexpected parameter {}", values[position]));
     }
 }
 
@@ -385,9 +340,11 @@ int command::print_version() const {
 }
 
 int command::print_version(std::ostream& out) const {
+    out << name_;
     if (version_.has_value()) {
-        out << name_ << ' ' << *version_ << '\n';
+         out << ' ' << *version_;
     }
+    out << '\n';
     auto const terminal_width = detail::terminal_width(out);
     if (copyright_.has_value() || license_.has_value()) {
         out << '\n';

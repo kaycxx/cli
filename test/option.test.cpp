@@ -35,9 +35,9 @@ suite("option") {
         auto assigned_result = parse_arguments(app, { "--count=2" });
         auto short_result = parse_arguments(app, { "-c", "3" });
 
-        assert_equal(long_result.args().get(count), 1);
-        assert_equal(assigned_result.args().get(count), 2);
-        assert_equal(short_result.args().get(count), 3);
+        assert_equal(long_result.get(count), 1);
+        assert_equal(assigned_result.get(count), 2);
+        assert_equal(short_result.get(count), 3);
     });
 
     it("supports default and absent values", [] {
@@ -45,8 +45,7 @@ suite("option") {
         auto count = app.option<int>("count", "COUNT", "Number of repetitions").default_value(1);
         auto output = app.option<std::string>("output", "FILE", "Output file");
 
-        auto result = parse_arguments(app, {});
-        auto& arguments = result.args();
+        auto arguments = parse_arguments(app, {});
 
         assert_true(arguments.has(count));
         assert_equal(arguments.get(count), 1);
@@ -59,12 +58,12 @@ suite("option") {
 
         auto result = parse_arguments(app, { "--count", "1", "-c", "2" });
 
-        assert_equal(result.args().get(count), 2);
+        assert_equal(result.get(count), 2);
     });
 
     it("reports missing values", [] {
         auto app = command("example");
-        app.option<int>("count", 'c', "COUNT", "Number of repetitions");
+        [[maybe_unused]] auto count = app.option<int>("count", 'c', "COUNT", "Number of repetitions");
 
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--count" });
