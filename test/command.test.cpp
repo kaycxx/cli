@@ -100,6 +100,56 @@ suite("command") {
         }, "Unknown option -x");
     });
 
+    it("includes command metadata in help output", [] {
+        auto app = command("example", {
+            .version = "1.2.3",
+            .description = "Example command",
+            .author = "Example Author",
+            .email = "author@example.com",
+            .bugs = "https://example.com/issues",
+            .copyright = "Copyright (c) 2026 Example Author",
+            .license = "Licensed under the MIT License"
+        });
+        auto output = std::ostringstream();
+
+        auto const exit_code = app.print_help(output);
+
+        assert_equal(exit_code, 0);
+        assert_equal(
+            output.str(),
+            "Usage: example\n"
+            "Example command\n"
+            "\n"
+            "Report bugs to <https://example.com/issues>\n"
+        );
+    });
+
+    it("includes command metadata in version output", [] {
+        auto app = command("example", {
+            .version = "1.2.3",
+            .description = "Example command",
+            .author = "Example Author",
+            .email = "author@example.com",
+            .bugs = "https://example.com/issues",
+            .copyright = "Copyright (c) 2026 Example Author",
+            .license = "Licensed under the MIT License"
+        });
+        auto output = std::ostringstream();
+
+        auto const exit_code = app.print_version(output);
+
+        assert_equal(exit_code, 0);
+        assert_equal(
+            output.str(),
+            "example 1.2.3\n"
+            "\n"
+            "Copyright (c) 2026 Example Author\n"
+            "Licensed under the MIT License\n"
+            "\n"
+            "Written by Example Author <author@example.com>\n"
+        );
+    });
+
     it("includes registered arguments in help output", [] {
         auto app = command("example");
         app.flag("quiet", 'q', "Suppress output");

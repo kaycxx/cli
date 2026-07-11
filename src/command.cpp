@@ -385,7 +385,29 @@ int command::print_version() const {
 }
 
 int command::print_version(std::ostream& out) const {
-    out << "version\n";
+    if (version_.has_value()) {
+        out << name_ << ' ' << *version_ << '\n';
+    }
+    auto const terminal_width = detail::terminal_width(out);
+    if (copyright_.has_value() || license_.has_value()) {
+        out << '\n';
+        if (copyright_.has_value()) {
+             out << detail::wrap(*copyright_, terminal_width) << '\n';
+        }
+        if (license_.has_value()) {
+            out << detail::wrap(*license_, terminal_width) << '\n';
+        }
+    }
+    if (author_.has_value() || email_.has_value()) {
+        out << '\n' << "Written by";
+        if (author_.has_value()) {
+            out << ' ' << *author_;
+        }
+        if (email_.has_value()) {
+            out << " <" << *email_ << '>';
+        }
+        out << '\n';
+    }
     return 0;
 }
 
