@@ -5,7 +5,7 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/GitDeps.cmake")
 
-git_require(kaycxx::test 0.0.3)
+git_require(kaycxx::test 0.0.4)
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
     test/*.cpp
@@ -21,11 +21,10 @@ target_link_libraries(${NAME}-tests PRIVATE
 )
 
 set(TEST_DISCOVERY_FILE "${CMAKE_CURRENT_BINARY_DIR}/${NAME}-tests.cmake")
-file(WRITE "${TEST_DISCOVERY_FILE}" "")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake" "include(\"${TEST_DISCOVERY_FILE}\" OPTIONAL)\n")
 
 add_custom_command(TARGET ${NAME}-tests POST_BUILD
-    COMMAND ${NAME}-tests --write-ctest "${TEST_DISCOVERY_FILE}" "$<TARGET_FILE:${NAME}-tests>"
+    COMMAND ${NAME}-tests --write-ctest "${TEST_DISCOVERY_FILE}"
     COMMENT "Discovering ${PACKAGE_NAME} tests"
     VERBATIM
 )
