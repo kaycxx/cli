@@ -25,6 +25,14 @@ suite("option") {
         assert_equal(definition.value_name(), "COUNT");
         assert_equal(definition.description().value(), "Number of repetitions");
         assert_true(definition.expects_value());
+        assert_false(definition.is_action());
+    });
+
+    it("marks options as actions", [] {
+        auto app = command("example");
+        auto output = app.option<std::string>("output", "FILE", "Output file").action();
+
+        assert_true(output.definition().is_action());
     });
 
     it("parses long, assigned, and short forms", [] {

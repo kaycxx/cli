@@ -44,8 +44,8 @@ suite("args") {
 
     it("delays positional validation until requested", [] {
         auto app = command("example");
-        auto help = app.flag("help", 'h', "Show help");
-        auto version = app.flag("version", 'V', "Show version");
+        auto help = app.flag("help", 'h', "Show help").action();
+        auto version = app.flag("version", 'V', "Show version").action();
         auto input = app.parameter<std::string>("INPUT", "Input file");
 
         auto help_arguments = parse_arguments(app, { "--help" });

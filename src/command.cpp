@@ -43,6 +43,24 @@ std::string invalid_option_value_message(std::string_view label, parse_error con
     return std::format("{} for option {}", error.what(), label);
 }
 
+/**
+ * Records an explicitly used action and rejects a conflicting action.
+ *
+ * @param item             Parsed switch.
+ * @param selected_action  Previously selected action, updated when item is an action.
+ *
+ * @throws parse_error  When a different action was already selected.
+ */
+void record_action(switch_base const& item, switch_base const*& selected_action) {
+    if (!item.is_action()) {
+        return;
+    }
+    if (selected_action != nullptr && selected_action != &item) {
+        throw parse_error(std::format("Options --{} and --{} cannot be combined", selected_action->name(), item.name()));
+    }
+    selected_action = &item;
+}
+
 std::optional<std::string> copy_option(std::optional<std::string_view> value) {
     if (value) {
         return std::string(*value);
@@ -130,6 +148,7 @@ switch_base const* command::find_switch(char alias) const noexcept {
 
 cli::args command::parse(int argc, char *argv[]) const {
     auto result = args();
+    auto selected_action = static_cast<switch_base const*>(nullptr);
     result.parameter_definitions_.reserve(parameters_.size());
     for (auto const& parameter : parameters_) {
         result.parameter_definitions_.push_back(parameter.get());
@@ -190,6 +209,7 @@ cli::args command::parse(int argc, char *argv[]) const {
                 // Record flag
                 result.flags_.insert(item);
             }
+            record_action(*item, selected_action);
             continue;
         }
 
@@ -219,6 +239,7 @@ cli::args command::parse(int argc, char *argv[]) const {
                 // Record flag
                 result.flags_.insert(item);
             }
+            record_action(*item, selected_action);
             continue;
         }
 

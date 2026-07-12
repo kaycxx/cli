@@ -63,3 +63,16 @@ auto const job_count = arguments.get(jobs);
 ```
 
 When an option occurs more than once, the last parsed value is retained.
+
+## Actions
+
+Mark flags and options that select alternative command actions with `action()`. At most one explicitly specified action may occur on a command line. Omitting all actions is valid and lets the application perform its default action.
+
+```cpp
+auto help = app.flag("help", 'h', "Show help").action();
+auto version = app.flag("version", 'V', "Show version information").action();
+auto list = app.flag("list", "List entries").action();
+auto show = app.option<std::string>("show", "NAME", "Show one entry").action();
+```
+
+Normal switches are not part of this restriction and may be combined with an action. Default option values do not select an action. Only an action explicitly present on the command line participates in the exclusivity check.

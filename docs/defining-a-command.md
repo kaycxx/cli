@@ -42,8 +42,8 @@ Descriptions are optional. `print_help()` omits arguments without descriptions f
 Help and version switches are regular flags. The application chooses their names, aliases, descriptions, and language, then handles them like any other flag.
 
 ```cpp
-auto help = app.flag("help", 'h', "Show help");
-auto version = app.flag("version", 'V', "Show version information");
+auto help = app.flag("help", 'h', "Show help").action();
+auto version = app.flag("version", 'V', "Show version information").action();
 
 auto arguments = app.parse(argc, argv);
 
@@ -54,6 +54,8 @@ if (arguments.get(version)) {
     return app.print_version();
 }
 ```
+
+Marking both flags as actions makes them mutually exclusive. Passing both `--help` and `--version` produces a parse error.
 
 `print_help()` and `print_version()` are convenience methods that generate and write formatted help and version text from the command metadata and registered arguments. Both return `0`, so their result can be returned directly from `main` as the process exit code.
 

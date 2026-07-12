@@ -37,4 +37,12 @@ std::optional<std::string> const& switch_base::description() const noexcept {
     return description_;
 }
 
+void switch_base::mark_as_action() noexcept {
+    action_ = true;
+}
+
+bool switch_base::is_action() const noexcept {
+    return action_;
+}
+
 } // namespace kaycxx::cli

@@ -22,6 +22,7 @@ suite("flag") {
         assert_equal(definition.alias().value(), 'q');
         assert_equal(definition.description().value(), "Suppress output");
         assert_false(definition.expects_value());
+        assert_false(definition.is_action());
     });
 
     it("supports flags without aliases or descriptions", [] {
@@ -30,6 +31,13 @@ suite("flag") {
 
         assert_false(quiet.definition().alias().has_value());
         assert_false(quiet.definition().description().has_value());
+    });
+
+    it("marks flags as actions", [] {
+        auto app = command("example");
+        auto help = app.flag("help", 'h', "Show help").action();
+
+        assert_true(help.definition().is_action());
     });
 
     it("parses long and short forms", [] {

@@ -99,6 +99,50 @@ suite("command") {
         }, "Unknown option -x");
     });
 
+    it("rejects multiple actions", [] {
+        auto app = command("example");
+        [[maybe_unused]] auto help = app.flag("help", 'h', "Show help").action();
+        [[maybe_unused]] auto run = app.option<std::string>("run", 'r', "NAME", "Run an action").action();
+
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "--help", "--run", "test" });
+        }, "Options --help and --run cannot be combined");
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "-r", "test", "-h" });
+        }, "Options --run and --help cannot be combined");
+    });
+
+    it("allows one action with normal switches", [] {
+        auto app = command("example");
+        auto verbose = app.flag("verbose", 'v', "Enable verbose output");
+        auto run = app.option<std::string>("run", 'r', "NAME", "Run an action").action();
+
+        auto arguments = parse_arguments(app, { "--verbose", "--run", "test" });
+
+        assert_true(arguments.get(verbose));
+        assert_equal(arguments.get(run), "test");
+    });
+
+    it("allows repeated use of the same action", [] {
+        auto app = command("example");
+        auto help = app.flag("help", 'h', "Show help").action();
+
+        auto arguments = parse_arguments(app, { "--help", "-h" });
+
+        assert_true(arguments.get(help));
+    });
+
+    it("does not select actions through default values", [] {
+        auto app = command("example");
+        auto mode = app.option<std::string>("mode", "MODE", "Select mode").default_value("default").action();
+        auto help = app.flag("help", "Show help").action();
+
+        auto arguments = parse_arguments(app, { "--help" });
+
+        assert_equal(arguments.get(mode), "default");
+        assert_true(arguments.get(help));
+    });
+
     it("includes command metadata in help output", [] {
         auto app = command("example", {
             .description = "Example command",

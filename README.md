@@ -19,8 +19,8 @@ using namespace kaycxx::cli;
 int main(int argc, char* argv[]) {
     auto app = command("example", { .version = "1.0.0" });
 
-    auto help = app.flag("help", 'h', "Show help");
-    auto version = app.flag("version", 'V', "Show version information");
+    auto help = app.flag("help", 'h', "Show help").action();
+    auto version = app.flag("version", 'V', "Show version information").action();
     auto verbose = app.flag("verbose", 'v', "Enable verbose output");
     auto repetitions = app.option<int>("count", 'c', "COUNT", "Number of repetitions").default_value(1);
     auto input = app.parameter<std::string>("INPUT", "Input file name");
@@ -66,7 +66,7 @@ c++ main.o $(pkg-config --libs kaycxx-cli)
 ## Guides
 
 - [Defining a Command] explains command metadata, registered arguments, handles, and help/version dispatch.
-- [Flags and Options] explains boolean flags, typed options, short aliases, defaults, and value access.
+- [Flags and Options] explains boolean flags, typed options, short aliases, defaults, actions, and value access.
 - [Positional Parameters] explains single and repeated parameters, defaults, value counts, and argument allocation.
 - [Value Conversion] explains built-in conversions and how custom types provide an ADL-discovered `from_string` function.
 - [Parsing and Errors] explains parsing, lazy positional validation, the `--` separator, and `parse_error` handling.

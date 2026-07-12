@@ -8,10 +8,11 @@
 
 #pragma once
 
+#include <kaycxx/cli/switch_base.hpp>
+
 namespace kaycxx::cli {
 
 class command;
-class switch_base;
 
 /**
  * Handle for a registered flag.
@@ -20,6 +21,16 @@ class switch_base;
  */
 class flag_handle {
 public:
+    /**
+     * Marks the flag as a mutually exclusive command action.
+     *
+     * @returns This handle for chaining.
+     */
+    flag_handle action() noexcept {
+        definition_->mark_as_action();
+        return *this;
+    }
+
     /**
      * Returns the underlying flag definition.
      *
@@ -32,11 +43,11 @@ public:
 private:
     friend class command;
 
-    explicit flag_handle(switch_base const& definition) noexcept
+    explicit flag_handle(switch_base& definition) noexcept
         : definition_(&definition)
     {}
 
-    switch_base const* definition_;
+    switch_base* definition_;
 };
 
 } // namespace kaycxx::cli

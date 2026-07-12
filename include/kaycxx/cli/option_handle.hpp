@@ -25,6 +25,16 @@ template <parseable_value T>
 class option_handle {
 public:
     /**
+     * Marks the option as a mutually exclusive command action.
+     *
+     * @returns This handle for chaining.
+     */
+    option_handle action() noexcept {
+        definition_->mark_as_action();
+        return *this;
+    }
+
+    /**
      * Returns the underlying option definition.
      *
      * @returns Option definition owned by the command.

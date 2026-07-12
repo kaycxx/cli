@@ -8,7 +8,7 @@ auto arguments = app.parse(argc, argv);
 
 The returned `args` object is movable but not copyable. Keep it by value with `auto`.
 
-Flags and options are parsed immediately. Unknown switches, missing option values, and invalid option values therefore produce an error during `parse()`.
+Flags and options are parsed immediately. Unknown switches, missing or invalid option values, and conflicting actions therefore produce an error during `parse()`.
 
 Positional arguments are retained as strings and validated lazily. Accessing any positional parameter through `args::get()` or `args::has()` validates and converts all positional parameters once.
 

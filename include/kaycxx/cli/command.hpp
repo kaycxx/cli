@@ -255,7 +255,7 @@ public:
      *
      * @returns Parsed command-line arguments.
      *
-     * @throws parse_error  When a switch is unknown, an option value is missing, or an option value cannot be converted.
+     * @throws parse_error  When a switch is unknown, an option value is missing or invalid, or multiple actions are specified.
      */
     [[nodiscard]] cli::args parse(int argc, char *argv[]) const;
 

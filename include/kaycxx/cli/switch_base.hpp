@@ -63,6 +63,16 @@ public:
      */
     std::optional<std::string> const& description() const noexcept;
 
+    /** Marks this switch as a mutually exclusive command action. */
+    void mark_as_action() noexcept;
+
+    /**
+     * Checks whether this switch is a command action.
+     *
+     * @returns True when the switch is an action, false otherwise.
+     */
+    bool is_action() const noexcept;
+
     /**
      * Returns generated help usage for this switch.
      *
@@ -93,6 +103,7 @@ private:
     std::string name_;
     std::optional<char> alias_;
     std::optional<std::string> description_;
+    bool action_ = false;
 };
 
 } // namespace kaycxx::cli
