@@ -32,6 +32,7 @@
         {
             "name": "debug",
             "displayName": "Debug",
+            "generator": "Ninja",
             "inherits": [
                 "debug-linux",
                 "debug-windows"
@@ -41,6 +42,7 @@
         {
             "name": "release",
             "displayName": "Release",
+            "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"

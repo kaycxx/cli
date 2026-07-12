@@ -5,6 +5,7 @@ cflags
 COLORSTYLE
 endforeach
 endfunction
+fsanitize
 GitDeps
 includedir
 initializable
