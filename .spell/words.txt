@@ -1,8 +1,10 @@
 apidoc
 AUTOBRIEF
 BINDIR
+cerr
 cflags
 COLORSTYLE
+cout
 ctest
 endforeach
 endfunction
