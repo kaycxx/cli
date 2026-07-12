@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <any>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -47,21 +46,21 @@ public:
      *
      * @returns Long switch name without the leading `--`.
      */
-    std::string const& name() const noexcept;
+    [[nodiscard]] std::string const& name() const noexcept;
 
     /**
      * Returns the short switch alias.
      *
      * @returns Short alias without the leading `-` or an empty optional if no alias is configured.
      */
-    std::optional<char> alias() const noexcept;
+    [[nodiscard]] std::optional<char> alias() const noexcept;
 
     /**
      * Returns the switch description.
      *
      * @returns Human-readable description or an empty optional if no description was configured.
      */
-    std::optional<std::string> const& description() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& description() const noexcept;
 
     /** Marks this switch as a mutually exclusive command action. */
     void mark_as_action() noexcept;
@@ -71,38 +70,33 @@ public:
      *
      * @returns True when the switch is an action, false otherwise.
      */
-    bool is_action() const noexcept;
+    [[nodiscard]] bool is_action() const noexcept;
 
     /**
      * Returns generated help usage for this switch.
      *
      * @returns Usage text.
      */
-    virtual std::string usage() const = 0;
+    [[nodiscard]] virtual std::string usage() const = 0;
 
     /**
      * Checks whether this switch expects a value.
      *
      * @returns True for options, false for flags.
      */
-    virtual bool expects_value() const noexcept = 0;
-
-    /**
-     * Parses a switch value.
-     *
-     * @param text  Value text to parse.
-     *
-     * @returns Parsed value stored in type-erased form.
-     *
-     * @throws parse_error        When the value is syntactically invalid.
-     * @throws std::logic_error   When called for a switch that does not accept values.
-     */
-    virtual std::any parse_value(std::string_view text) const = 0;
+    [[nodiscard]] virtual bool expects_value() const noexcept = 0;
 
 private:
+    /** Long switch name without the leading `--`. */
     std::string name_;
+
+    /** Optional short switch alias without the leading `-`. */
     std::optional<char> alias_;
+
+    /** Optional human-readable description. */
     std::optional<std::string> description_;
+
+    /** Whether the switch is a mutually exclusive command action. */
     bool action_ = false;
 };
 

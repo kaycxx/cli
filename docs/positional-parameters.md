@@ -41,6 +41,8 @@ Default lists are also configured through the handle.
 auto inputs = app.parameters<std::string>("INPUT", "Input files").default_values({ "stdin" });
 ```
 
+Configured defaults must satisfy the same `min` and `max` limits as command-line values. Invalid default counts are reported when positional parameters are validated.
+
 ## Combining Parameter Shapes
 
 Parameters are declared in allocation order. Each repeated parameter first receives its minimum number of values, then consumes additional values while reserving the minimum required by later parameters. This supports both a repeated prefix and a repeated suffix.

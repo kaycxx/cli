@@ -42,7 +42,7 @@ example --jobs=4
 example -j 4
 ```
 
-Grouped short flags such as `-qv` and attached short option values such as `-j4` are not supported.
+Grouped short flags such as `-qv` and attached short option values such as `-j4` are rejected. Write them as separate arguments instead.
 
 ## Defaults and Optional Values
 

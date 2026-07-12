@@ -32,7 +32,7 @@ std::size_t terminal_width(std::ostream& stream) noexcept {
         handle = GetStdHandle(STD_ERROR_HANDLE);
     }
 
-    auto info = CONSOLE_SCREEN_BUFFER_INFO{};
+    auto info = CONSOLE_SCREEN_BUFFER_INFO();
     if (handle != nullptr && handle != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(handle, &info) != 0) {
         auto const width = info.srWindow.Right - info.srWindow.Left + 1;
         if (width > 0) {
@@ -47,7 +47,7 @@ std::size_t terminal_width(std::ostream& stream) noexcept {
         descriptor = STDERR_FILENO;
     }
 
-    auto size = winsize{};
+    auto size = winsize();
     if (descriptor >= 0 && ioctl(descriptor, TIOCGWINSZ, &size) == 0 && size.ws_col > 0) {
         return size.ws_col;
     }

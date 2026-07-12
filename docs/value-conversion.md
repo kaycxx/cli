@@ -62,6 +62,6 @@ The required customization signature is:
 T from_string(std::string_view text, std::type_identity<T>);
 ```
 
-The `std::type_identity<T>` argument distinguishes conversions by result type without requiring a dummy value. A thrown `parse_error` is preserved. Other standard exceptions are converted to `parse_error` and their `what()` message is appended to the invalid-value message.
+The `std::type_identity<T>` argument distinguishes conversions by result type without requiring a dummy value. A thrown `parse_error` is preserved. Other standard exceptions thrown by custom conversions or `std::string_view` constructors are converted to `parse_error`, and their `what()` message is appended to the invalid-value message.
 
 Use a flag instead of `option<bool>` for a simple enabled/disabled switch. Options are intended for values explicitly supplied by the user.

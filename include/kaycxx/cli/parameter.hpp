@@ -55,7 +55,7 @@ public:
      *
      * @returns Usage text.
      */
-    std::string usage() const override {
+    [[nodiscard]] std::string usage() const override {
         return std::format("<{}>", name());
     }
 
@@ -64,7 +64,7 @@ public:
      *
      * @returns Zero when a default value is configured, otherwise one.
      */
-    std::size_t min_count() const noexcept override {
+    [[nodiscard]] std::size_t min_count() const noexcept override {
         return default_value_ ? 0 : 1;
     }
 
@@ -73,7 +73,7 @@ public:
      *
      * @returns Always one.
      */
-    std::size_t max_count() const noexcept override {
+    [[nodiscard]] std::size_t max_count() const noexcept override {
         return 1;
     }
 
@@ -86,19 +86,24 @@ public:
      *
      * @throws parse_error  When the value is syntactically invalid or no value is present and no default value is configured.
      */
-    std::any parse_values(std::span<std::string_view const> values) const override {
+    [[nodiscard]] std::any parse_values(std::span<std::string_view const> values) const override {
         if (values.empty()) {
             if (default_value_) {
                 return *default_value_;
             }
 
-            throw parse_error("Missing parameter");
+            throw parse_error(std::format("Missing parameter <{}>", name()));
         }
 
-        return detail::parse_value<T>(values.front());
+        try {
+            return detail::parse_value<T>(values.front());
+        } catch (parse_error const& error) {
+            throw parse_error(std::format("{} for parameter <{}>", error.what(), name()));
+        }
     }
 
 private:
+    /** Optional value used when the parameter is absent. */
     std::optional<T> default_value_;
 };
 

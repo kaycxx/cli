@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include <any>
 #include <string>
-#include <string_view>
 
 #include <kaycxx/cli/switch_base.hpp>
 
@@ -30,23 +28,14 @@ public:
      *
      * @returns Usage text.
      */
-    std::string usage() const override;
+    [[nodiscard]] std::string usage() const override;
 
     /**
      * Checks whether this flag expects a value.
      *
      * @returns Always false.
      */
-    bool expects_value() const noexcept override;
-
-    /**
-     * Rejects parsing a value for this flag.
-     *
-     * @returns Nothing. This function always throws.
-     *
-     * @throws std::logic_error  Always thrown because flags do not accept values.
-     */
-    std::any parse_value(std::string_view) const override;
+    [[nodiscard]] bool expects_value() const noexcept override;
 };
 
 } // namespace kaycxx::cli

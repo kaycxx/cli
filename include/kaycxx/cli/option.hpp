@@ -33,21 +33,21 @@ public:
      *
      * @returns Placeholder name used by generated help output and parse errors.
      */
-    virtual std::string const& value_name() const noexcept = 0;
+    [[nodiscard]] virtual std::string const& value_name() const noexcept = 0;
 
     /**
      * Returns the configured default value.
      *
      * @returns Default value stored in type-erased form or an empty optional if no default value is configured.
      */
-    virtual std::optional<std::any> default_value() const = 0;
+    [[nodiscard]] virtual std::optional<std::any> default_value() const = 0;
 
     /**
      * Checks whether this option accepts multiple occurrences.
      *
      * @returns True when the option is repeatable, false otherwise.
      */
-    bool is_repeatable() const noexcept {
+    [[nodiscard]] bool is_repeatable() const noexcept {
         return repeatable_;
     }
 
@@ -60,6 +60,17 @@ private:
     }
 
     /**
+     * Parses an option value.
+     *
+     * @param text  Value text to parse.
+     *
+     * @returns Parsed value stored in type-erased form.
+     *
+     * @throws parse_error  When the value is syntactically invalid.
+     */
+    [[nodiscard]] virtual std::any parse_value(std::string_view text) const = 0;
+
+    /**
      * Parses and appends a value to repeatable option storage.
      *
      * @param storage  Type-erased storage containing the option's `std::vector<T>`.
@@ -69,6 +80,7 @@ private:
      */
     virtual void append_value(std::any& storage, std::string_view text) const = 0;
 
+    /** Whether the option accepts multiple occurrences. */
     bool repeatable_ = false;
 };
 
@@ -108,7 +120,7 @@ public:
      *
      * @returns Placeholder name used by generated help output and parse errors.
      */
-    std::string const& value_name() const noexcept override {
+    [[nodiscard]] std::string const& value_name() const noexcept override {
         return value_name_;
     }
 
@@ -126,7 +138,7 @@ public:
      *
      * @returns Usage text.
      */
-    std::string usage() const override {
+    [[nodiscard]] std::string usage() const override {
         if (auto alias = this->alias()) {
             return std::format("-{}, --{} <{}>", *alias, name(), value_name_);
         }
@@ -139,7 +151,7 @@ public:
      *
      * @returns Always true.
      */
-    bool expects_value() const noexcept override {
+    [[nodiscard]] bool expects_value() const noexcept override {
         return true;
     }
 
@@ -148,7 +160,7 @@ public:
      *
      * @returns Default value stored in type-erased form or an empty optional if no default value is configured.
      */
-    std::optional<std::any> default_value() const override {
+    [[nodiscard]] std::optional<std::any> default_value() const override {
         if (default_value_) {
             if (is_repeatable()) {
                 auto values = std::vector<T>();
@@ -161,6 +173,7 @@ public:
         return std::nullopt;
     }
 
+private:
     /**
      * Parses an option value.
      *
@@ -170,11 +183,10 @@ public:
      *
      * @throws parse_error  When the value is syntactically invalid.
      */
-    std::any parse_value(std::string_view text) const override {
+    [[nodiscard]] std::any parse_value(std::string_view text) const override {
         return detail::parse_value<T>(text);
     }
 
-private:
     /**
      * Parses and appends a value to repeatable option storage.
      *
@@ -191,7 +203,10 @@ private:
         std::any_cast<std::vector<T>&>(storage).push_back(std::move(value));
     }
 
+    /** Placeholder name used by help output and parse errors. */
     std::string value_name_;
+
+    /** Optional value used when the option is absent. */
     std::optional<T> default_value_;
 };
 

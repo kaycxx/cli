@@ -40,14 +40,27 @@ public:
     /** Creates an empty argument collection. */
     args() = default;
 
+    /** Prevents copying parsed arguments. */
     args(args const&) = delete;
+
+    /** Prevents copy-assigning parsed arguments. */
     args& operator=(args const&) = delete;
 
-    /** Moves parsed arguments. */
-    args(args&&) noexcept = default;
+    /**
+     * Moves parsed arguments.
+     *
+     * @param other  Parsed arguments to move from.
+     */
+    args(args&& other) noexcept = default;
 
-    /** Moves parsed arguments. */
-    args& operator=(args&&) noexcept = default;
+    /**
+     * Move-assigns parsed arguments.
+     *
+     * @param other  Parsed arguments to move from.
+     *
+     * @returns This argument collection.
+     */
+    args& operator=(args&& other) noexcept = default;
 
     /**
      * Validates and converts all positional parameters.
@@ -65,7 +78,7 @@ public:
      *
      * @returns True if the flag was present in the parsed arguments, false otherwise.
      */
-    bool get(flag_handle const& flag) const;
+    [[nodiscard]] bool get(flag_handle const& flag) const;
 
     /**
      * Returns a parsed option value.
@@ -77,7 +90,7 @@ public:
      * @returns Parsed option value.
      */
     template <parseable_value T>
-    T const& get(option_handle<T> const& option) const {
+    [[nodiscard]] T const& get(option_handle<T> const& option) const {
         return std::any_cast<T const&>(values_.at(&option.definition()));
     }
 
@@ -91,7 +104,7 @@ public:
      * @returns True if the option was provided or has a default value, false otherwise.
      */
     template <parseable_value T>
-    bool has(option_handle<T> const& option) const {
+    [[nodiscard]] bool has(option_handle<T> const& option) const {
         return values_.contains(&option.definition());
     }
 
@@ -104,7 +117,7 @@ public:
      * @returns Parsed option values in command-line order.
      */
     template <parseable_value T>
-    std::vector<T> const& get(repeatable_option_handle<T> const& option) const {
+    [[nodiscard]] std::vector<T> const& get(repeatable_option_handle<T> const& option) const {
         return std::any_cast<std::vector<T> const&>(values_.at(&option.definition()));
     }
 
@@ -117,7 +130,7 @@ public:
      * @returns True if the option was provided or has a default value, false otherwise.
      */
     template <parseable_value T>
-    bool has(repeatable_option_handle<T> const& option) const {
+    [[nodiscard]] bool has(repeatable_option_handle<T> const& option) const {
         return values_.contains(&option.definition());
     }
 
@@ -133,7 +146,7 @@ public:
      * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
-    T const& get(parameter_handle<T> const& parameter) const {
+    [[nodiscard]] T const& get(parameter_handle<T> const& parameter) const {
         validate();
         return std::any_cast<T const&>(parameters_.at(&parameter.definition()));
     }
@@ -150,7 +163,7 @@ public:
      * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
-    bool has(parameter_handle<T> const& parameter) const {
+    [[nodiscard]] bool has(parameter_handle<T> const& parameter) const {
         validate();
         return parameters_.contains(&parameter.definition());
     }
@@ -167,7 +180,7 @@ public:
      * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
-    std::vector<T> const& get(parameters_handle<T> const& parameters) const {
+    [[nodiscard]] std::vector<T> const& get(parameters_handle<T> const& parameters) const {
         validate();
         return std::any_cast<std::vector<T> const&>(parameters_.at(&parameters.definition()));
     }
@@ -184,7 +197,7 @@ public:
      * @throws parse_error  When positional parameter validation fails.
      */
     template <parseable_value T>
-    bool has(parameters_handle<T> const& parameters) const {
+    [[nodiscard]] bool has(parameters_handle<T> const& parameters) const {
         validate();
         return parameters_.contains(&parameters.definition());
     }
@@ -192,11 +205,22 @@ public:
 private:
     friend class command;
 
+    /** Flags present in the parsed command line, stored as non-owning identity pointers. */
     std::unordered_set<switch_base const*> flags_;
+
+    /** Parsed option values indexed by non-owning definition identity pointers. */
     std::unordered_map<switch_base const*, std::any> values_;
+
+    /** Positional parameter definitions in registration order, stored as non-owning identity pointers. */
     std::vector<parameter_base const*> parameter_definitions_;
+
+    /** Unparsed positional argument texts. */
     std::vector<std::string> positional_values_;
+
+    /** Lazily parsed positional values indexed by non-owning definition identity pointers. */
     mutable std::unordered_map<parameter_base const*, std::any> parameters_;
+
+    /** Whether positional arguments have been validated successfully. */
     mutable bool validated_ = false;
 };
 

@@ -56,7 +56,7 @@ suite("args") {
         assert_false(version_arguments.get(help));
         assert_true(version_arguments.get(version));
         assert_throw<parse_error>([&] {
-            help_arguments.get(input);
+            static_cast<void>(help_arguments.get(input));
         }, "Missing parameter <INPUT>");
         assert_throw<parse_error>([&] {
             version_arguments.validate();

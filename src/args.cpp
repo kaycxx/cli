@@ -3,8 +3,6 @@
 
 #include <kaycxx/cli/args.hpp>
 
-#include <kaycxx/cli/parse_error.hpp>
-
 #include <algorithm>
 #include <any>
 #include <cstddef>
@@ -14,6 +12,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include <kaycxx/cli/parse_error.hpp>
 
 namespace kaycxx::cli {
 
@@ -59,11 +59,7 @@ void args::validate() const {
             ? std::span<std::string_view const>()
             : std::span<std::string_view const>(values.data() + position, take);
 
-        try {
-            parsed_parameters[parameter] = parameter->parse_values(parameter_values);
-        } catch (parse_error const& error) {
-            throw parse_error(std::format("{} for parameter <{}>", error.what(), parameter->name()));
-        }
+        parsed_parameters[parameter] = parameter->parse_values(parameter_values);
         position += take;
     }
 

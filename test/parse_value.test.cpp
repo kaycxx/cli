@@ -25,6 +25,13 @@ enum class color {
     blue
 };
 
+class constructed_value {
+public:
+    explicit constructed_value(std::string_view text) {
+        throw std::invalid_argument(std::string("Cannot construct from ") + std::string(text));
+    }
+};
+
 color from_string(std::string_view text, std::type_identity<color>);
 
 color from_string(std::string_view text, std::type_identity<color>) {
@@ -94,5 +101,14 @@ suite("parse_value") {
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "--color=purple" });
         }, "Invalid value \"purple\" (Expected red, green, or blue) for option --color");
+    });
+
+    it("includes errors from string view constructors", [] {
+        auto app = command("example");
+        [[maybe_unused]] auto value = app.option<test_types::constructed_value>("value", "VALUE");
+
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "--value=broken" });
+        }, "Invalid value \"broken\" (Cannot construct from broken) for option --value");
     });
 }

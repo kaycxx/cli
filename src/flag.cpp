@@ -4,7 +4,6 @@
 #include <kaycxx/cli/flag.hpp>
 
 #include <format>
-#include <stdexcept>
 
 namespace kaycxx::cli {
 
@@ -18,10 +17,6 @@ std::string flag::usage() const {
 
 bool flag::expects_value() const noexcept {
     return false;
-}
-
-std::any flag::parse_value(std::string_view) const {
-    throw std::logic_error("Flag does not accept a value");
 }
 
 } // namespace kaycxx::cli

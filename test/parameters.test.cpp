@@ -69,13 +69,52 @@ suite("parameters") {
         assert_equal(result.get(values), std::vector<std::string>{ "default" });
     });
 
+    it("accepts default values within the configured range", [] {
+        auto app = command("example");
+        auto values = app.parameters<int>("VALUE").min(2).max(3).default_values({ 1, 2 });
+
+        auto arguments = parse_arguments(app, {});
+
+        assert_equal(arguments.get(values), std::vector<int>{ 1, 2 });
+    });
+
+    it("applies the minimum count to explicit values when defaults exist", [] {
+        auto app = command("example");
+        auto values = app.parameters<int>("VALUE").min(2).default_values({ 1, 2 });
+
+        assert_throw<parse_error>([&] {
+            auto arguments = parse_arguments(app, { "1" });
+            static_cast<void>(arguments.get(values));
+        }, "Missing parameter <VALUE>");
+    });
+
+    it("rejects default values below the configured minimum", [] {
+        auto app = command("example");
+        auto values = app.parameters<int>("VALUE").min(2).default_values({ 1 });
+
+        assert_throw<parse_error>([&] {
+            auto arguments = parse_arguments(app, {});
+            static_cast<void>(arguments.get(values));
+        }, "Missing parameter <VALUE>");
+    });
+
+    it("rejects default values above the configured maximum", [] {
+        auto app = command("example");
+        auto values = app.parameters<int>("VALUE").max(1).default_values({ 1, 2 });
+
+        assert_throw<parse_error>([&] {
+            auto arguments = parse_arguments(app, {});
+            static_cast<void>(arguments.get(values));
+        }, "Too many values for parameter <VALUE>");
+    });
+
     it("reports missing minimum values", [] {
         auto app = command("example");
         auto values = app.parameters<int>("VALUE", "Values").min(2);
 
         assert_throw<parse_error>([&] {
             auto arguments = parse_arguments(app, { "1" });
-            arguments.get(values);
+            static_cast<void>(arguments.get(values));
         }, "Missing parameter <VALUE>");
     });
 
@@ -86,8 +125,8 @@ suite("parameters") {
 
         assert_throw<parse_error>([&] {
             auto arguments = parse_arguments(app, { "input" });
-            arguments.get(sources);
-            arguments.get(destination);
+            static_cast<void>(arguments.get(sources));
+            static_cast<void>(arguments.get(destination));
         }, "Missing parameter <DEST>");
     });
 
@@ -97,7 +136,7 @@ suite("parameters") {
 
         assert_throw<parse_error>([&] {
             auto arguments = parse_arguments(app, { "1", "2", "3" });
-            arguments.get(values);
+            static_cast<void>(arguments.get(values));
         }, "Unexpected parameter 3");
     });
 }

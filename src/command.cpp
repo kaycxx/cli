@@ -3,10 +3,6 @@
 
 #include <kaycxx/cli/command.hpp>
 
-#include "detail/string.hpp"
-
-#include <kaycxx/cli/parse_error.hpp>
-
 #include <algorithm>
 #include <cstddef>
 #include <format>
@@ -17,29 +13,57 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
+
+#include <kaycxx/cli/parse_error.hpp>
+
+#include "detail/string.hpp"
 
 namespace kaycxx::cli {
 
 namespace {
 
+/**
+ * Formats a long option label.
+ *
+ * @param name  Long option name without the leading `--`.
+ *
+ * @returns Option label including the leading `--`.
+ */
 std::string long_option_label(std::string_view name) {
     return std::format("--{}", name);
 }
 
+/**
+ * Formats a short option label.
+ *
+ * @param alias  Short option alias without the leading `-`.
+ *
+ * @returns Option label including the leading `-`.
+ */
 std::string short_option_label(char alias) {
     return std::format("-{}", alias);
 }
 
-std::string missing_option_value_message(std::string_view label, switch_base const& item) {
-    auto const* option = dynamic_cast<option_base const*>(&item);
-    if (option == nullptr) {
-        return std::format("Missing value for option {}", label);
-    }
-
-    return std::format("Missing value <{}> for option {}", option->value_name(), label);
+/**
+ * Formats an error for an option without a following value.
+ *
+ * @param label   Option label used on the command line.
+ * @param option  Option definition whose value is missing.
+ *
+ * @returns Missing-value error message.
+ */
+std::string missing_option_value_message(std::string_view label, option_base const& option) {
+    return std::format("Missing value <{}> for option {}", option.value_name(), label);
 }
 
+/**
+ * Adds an option label to a value parsing error.
+ *
+ * @param label  Option label used on the command line.
+ * @param error  Value parsing error.
+ *
+ * @returns Error message identifying the affected option.
+ */
 std::string invalid_option_value_message(std::string_view label, parse_error const& error) {
     return std::format("{} for option {}", error.what(), label);
 }
@@ -62,6 +86,13 @@ void record_action(switch_base const& item, switch_base const*& selected_action)
     selected_action = &item;
 }
 
+/**
+ * Copies optional command metadata into owned storage.
+ *
+ * @param value  Optional text view to copy.
+ *
+ * @returns Owned optional string.
+ */
 std::optional<std::string> copy_option(std::optional<std::string_view> value) {
     if (value) {
         return std::string(*value);
@@ -198,7 +229,7 @@ cli::args command::parse(int argc, char *argv[]) const {
             auto name = arg.substr(2);
             auto value = std::optional<std::string_view>();
 
-            // Split open name and value when concatenated with '='
+            // Split option name and value when concatenated with '='
             auto pos = name.find('=');
             if (pos != std::string_view::npos) {
                 value = name.substr(pos + 1);
@@ -217,7 +248,7 @@ cli::args command::parse(int argc, char *argv[]) const {
                 // When option needs a value but it wasn't already parsed from `=` assignment then read it from next argument
                 if (!value) {
                     if (i + 1 >= argc) {
-                        throw parse_error(missing_option_value_message(label, *item));
+                        throw parse_error(missing_option_value_message(label, static_cast<option_base const&>(*item)));
                     }
                     value = std::string_view(argv[++i]);
                 }
@@ -238,7 +269,11 @@ cli::args command::parse(int argc, char *argv[]) const {
         }
 
         // Parse short option (alias)
-        if (arg.starts_with("-") && arg.size() == 2) {
+        if (arg.starts_with("-") && arg.size() > 1) {
+            if (arg.size() != 2) {
+                throw parse_error(std::format("Unknown option {}", arg));
+            }
+
             // Search the option by short name
             auto item = find_switch(arg[1]);
             if (item == nullptr) {
@@ -250,7 +285,7 @@ cli::args command::parse(int argc, char *argv[]) const {
 
                 // When option needs a value then read it from next argument
                 if (i + 1 >= argc) {
-                    throw parse_error(missing_option_value_message(label, *item));
+                    throw parse_error(missing_option_value_message(label, static_cast<option_base const&>(*item)));
                 }
 
                 // Record option value
@@ -277,12 +312,9 @@ void command::apply_option_defaults(args& result) const {
             continue;
         }
 
-        auto const* option = dynamic_cast<option_base const*>(item.get());
-        if (option == nullptr) {
-            continue;
-        }
+        auto const& option = static_cast<option_base const&>(*item);
 
-        if (auto value = option->default_value()) {
+        if (auto value = option.default_value()) {
             result.values_[item.get()] = std::move(*value);
         }
     }

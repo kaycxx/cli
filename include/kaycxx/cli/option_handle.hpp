@@ -39,7 +39,7 @@ public:
      *
      * @returns Option definition owned by the command.
      */
-    option<T> const& definition() const noexcept {
+    [[nodiscard]] option<T> const& definition() const noexcept {
         return *definition_;
     }
 
@@ -58,10 +58,16 @@ public:
 private:
     friend class command;
 
+    /**
+     * Creates a handle for a command-owned option definition.
+     *
+     * @param definition  Option definition to reference.
+     */
     explicit option_handle(option<T>& definition) noexcept
         : definition_(&definition)
     {}
 
+    /** Non-owning pointer to the definition owned by the command. */
     option<T>* definition_;
 };
 

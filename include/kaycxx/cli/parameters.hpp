@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <kaycxx/cli/parameter_base.hpp>
+#include <kaycxx/cli/parse_error.hpp>
 #include <kaycxx/cli/parse_value.hpp>
 
 namespace kaycxx::cli {
@@ -27,8 +28,8 @@ namespace kaycxx::cli {
 /**
  * Typed positional parameter list definition.
  *
- * A parameter list can consume zero or more positional values. Minimum and maximum counts define how many values may be consumed before following positional parameters are
- * considered.
+ * A parameter list can consume zero or more positional values. Minimum and maximum counts define how many values may be consumed
+ * before following positional parameters are considered.
  *
  * @tparam T  Parsed parameter value type.
  */
@@ -77,7 +78,7 @@ public:
      *
      * @returns Usage text.
      */
-    std::string usage() const override {
+    [[nodiscard]] std::string usage() const override {
         return std::format("<{}>...", name());
     }
 
@@ -86,7 +87,7 @@ public:
      *
      * @returns Zero when default values are configured, otherwise the configured minimum count.
      */
-    std::size_t min_count() const noexcept override {
+    [[nodiscard]] std::size_t min_count() const noexcept override {
         return default_values_ ? 0 : min_count_;
     }
 
@@ -95,7 +96,7 @@ public:
      *
      * @returns Configured maximum value count.
      */
-    std::size_t max_count() const noexcept override {
+    [[nodiscard]] std::size_t max_count() const noexcept override {
         return max_count_;
     }
 
@@ -106,26 +107,54 @@ public:
      *
      * @returns Parsed parameter values stored in type-erased form.
      *
-     * @throws parse_error  When one of the values is syntactically invalid.
+     * @throws parse_error  When one of the values is syntactically invalid or the parsed or default value count is outside the configured range.
      */
-    std::any parse_values(std::span<std::string_view const> values) const override {
+    [[nodiscard]] std::any parse_values(std::span<std::string_view const> values) const override {
         if (values.empty() && default_values_) {
+            validate_count(default_values_->size());
             return *default_values_;
         }
+
+        validate_count(values.size());
 
         auto result = std::vector<T>();
         result.reserve(values.size());
 
         for (auto value : values) {
-            result.push_back(detail::parse_value<T>(value));
+            try {
+                result.push_back(detail::parse_value<T>(value));
+            } catch (parse_error const& error) {
+                throw parse_error(std::format("{} for parameter <{}>", error.what(), name()));
+            }
         }
 
         return result;
     }
 
 private:
+    /**
+     * Validates a parsed or default value count.
+     *
+     * @param count  Number of values to validate.
+     *
+     * @throws parse_error  When the count is outside the configured range.
+     */
+    void validate_count(std::size_t count) const {
+        if (count < min_count_) {
+            throw parse_error(std::format("Missing parameter <{}>", name()));
+        }
+        if (count > max_count_) {
+            throw parse_error(std::format("Too many values for parameter <{}>", name()));
+        }
+    }
+
+    /** Configured minimum number of values. */
     std::size_t min_count_ = 0;
+
+    /** Configured maximum number of values. */
     std::size_t max_count_ = std::numeric_limits<std::size_t>::max();
+
+    /** Optional values used when no command-line values are present. */
     std::optional<std::vector<T>> default_values_;
 };
 

@@ -32,7 +32,7 @@ public:
      *
      * @returns Parameter list definition owned by the command.
      */
-    parameters<T> const& definition() const noexcept {
+    [[nodiscard]] parameters<T> const& definition() const noexcept {
         return *definition_;
     }
 
@@ -43,7 +43,7 @@ public:
      *
      * @returns This handle for chaining.
      */
-    parameters_handle min(std::size_t count) {
+    parameters_handle min(std::size_t count) noexcept {
         definition_->min(count);
         return *this;
     }
@@ -55,13 +55,15 @@ public:
      *
      * @returns This handle for chaining.
      */
-    parameters_handle max(std::size_t count) {
+    parameters_handle max(std::size_t count) noexcept {
         definition_->max(count);
         return *this;
     }
 
     /**
      * Sets default values for the parameter list.
+     *
+     * The value count is checked against the configured minimum and maximum when positional parameters are validated.
      *
      * @param values  Default values used when the parameter list is not present in parsed arguments.
      *
@@ -75,6 +77,8 @@ public:
     /**
      * Sets default values for the parameter list.
      *
+     * The value count is checked against the configured minimum and maximum when positional parameters are validated.
+     *
      * @param values  Default values used when the parameter list is not present in parsed arguments.
      *
      * @returns This handle for chaining.
@@ -87,10 +91,16 @@ public:
 private:
     friend class command;
 
+    /**
+     * Creates a handle for a command-owned parameter list definition.
+     *
+     * @param definition  Parameter list definition to reference.
+     */
     explicit parameters_handle(parameters<T>& definition) noexcept
         : definition_(&definition)
     {}
 
+    /** Non-owning pointer to the definition owned by the command. */
     parameters<T>* definition_;
 };
 

@@ -75,14 +75,27 @@ public:
      */
     explicit command(std::string_view name, command_options options = command_options());
 
+    /** Prevents copying command definitions. */
     command(command const&) = delete;
+
+    /** Prevents copy-assigning command definitions. */
     command& operator=(command const&) = delete;
 
-    /** Moves a command definition. */
-    command(command&&) noexcept = default;
+    /**
+     * Moves a command definition.
+     *
+     * @param other  Command definition to move from.
+     */
+    command(command&& other) noexcept = default;
 
-    /** Moves a command definition. */
-    command& operator=(command&&) noexcept = default;
+    /**
+     * Move-assigns a command definition.
+     *
+     * @param other  Command definition to move from.
+     *
+     * @returns This command definition.
+     */
+    command& operator=(command&& other) noexcept = default;
 
     /**
      * Returns the command name.
@@ -327,7 +340,7 @@ public:
      *
      * @returns Exit code suitable for returning from `main`.
      */
-    int print_help() const;
+    [[nodiscard]] int print_help() const;
 
     /**
      * Writes generated help output.
@@ -336,14 +349,14 @@ public:
      *
      * @returns Exit code suitable for returning from `main`.
      */
-    int print_help(std::ostream& out) const;
+    [[nodiscard]] int print_help(std::ostream& out) const;
 
     /**
      * Writes generated version output to standard output.
      *
      * @returns Exit code suitable for returning from `main`.
      */
-    int print_version() const;
+    [[nodiscard]] int print_version() const;
 
     /**
      * Writes generated version output.
@@ -352,27 +365,99 @@ public:
      *
      * @returns Exit code suitable for returning from `main`.
      */
-    int print_version(std::ostream& out) const;
+    [[nodiscard]] int print_version(std::ostream& out) const;
 
 private:
+    /**
+     * Adds a switch after checking its name and alias for duplicates.
+     *
+     * @param item  Switch definition to add.
+     *
+     * @throws std::invalid_argument  When the long name or short alias is already registered.
+     */
     void add_switch(std::unique_ptr<switch_base> item);
+
+    /**
+     * Finds a switch by its long name.
+     *
+     * @param name  Long switch name without the leading `--`.
+     *
+     * @returns Matching switch or null when no matching switch exists.
+     */
     [[nodiscard]] switch_base const* find_switch(std::string_view name) const noexcept;
+
+    /**
+     * Finds a switch by its short alias.
+     *
+     * @param alias  Short switch alias without the leading `-`.
+     *
+     * @returns Matching switch or null when no matching switch exists.
+     */
     [[nodiscard]] switch_base const* find_switch(char alias) const noexcept;
+
+    /**
+     * Checks whether detailed switch help is available.
+     *
+     * @returns True when at least one switch has a description, false otherwise.
+     */
     [[nodiscard]] bool has_described_switches() const noexcept;
+
+    /**
+     * Checks whether detailed positional parameter help is available.
+     *
+     * @returns True when at least one positional parameter has a description, false otherwise.
+     */
     [[nodiscard]] bool has_described_parameters() const noexcept;
+
+    /**
+     * Calculates the longest documented switch usage text.
+     *
+     * @returns Longest usage length among switches with descriptions.
+     */
     [[nodiscard]] std::size_t max_switch_usage_length() const;
+
+    /**
+     * Calculates the longest documented positional parameter usage text.
+     *
+     * @returns Longest usage length among positional parameters with descriptions.
+     */
     [[nodiscard]] std::size_t max_parameter_usage_length() const;
+
+    /**
+     * Adds defaults for options that were not supplied explicitly.
+     *
+     * @param result  Parsed arguments to update.
+     */
     void apply_option_defaults(args& result) const;
 
+    /** Program name used in generated output and error messages. */
     std::string name_;
+
+    /** Optional command version. */
     std::optional<std::string> version_;
+
+    /** Optional author name. */
     std::optional<std::string> author_;
+
+    /** Optional author contact address. */
     std::optional<std::string> email_;
+
+    /** Optional bug-report destination. */
     std::optional<std::string> bugs_;
+
+    /** Optional copyright notice. */
     std::optional<std::string> copyright_;
+
+    /** Optional license text. */
     std::optional<std::string> license_;
+
+    /** Optional short command description. */
     std::optional<std::string> description_;
+
+    /** Owned switch definitions in registration order. */
     std::vector<std::unique_ptr<switch_base>> switches_;
+
+    /** Owned positional parameter definitions in registration order. */
     std::vector<std::unique_ptr<parameter_base>> parameters_;
 };
 

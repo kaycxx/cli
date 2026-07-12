@@ -100,6 +100,28 @@ suite("command") {
         }, "Unknown option -x");
     });
 
+    it("rejects grouped short options and attached short option values", [] {
+        auto app = command("example");
+        [[maybe_unused]] auto quiet = app.flag("quiet", 'q');
+        [[maybe_unused]] auto jobs = app.option<int>("jobs", 'j', "COUNT");
+
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "-qj" });
+        }, "Unknown option -qj");
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "-j4" });
+        }, "Unknown option -j4");
+    });
+
+    it("treats a lone dash as a positional argument", [] {
+        auto app = command("example");
+        auto value = app.parameter<std::string>("VALUE");
+
+        auto arguments = parse_arguments(app, { "-" });
+
+        assert_equal(arguments.get(value), "-");
+    });
+
     it("rejects duplicate switch names and aliases", [] {
         auto app = command("example");
         [[maybe_unused]] auto output = app.option<std::string>("output", 'o', "FILE");
@@ -227,7 +249,7 @@ suite("command") {
         [[maybe_unused]] auto output_files = app.parameters<std::string>("OUTPUT");
         auto output = std::ostringstream();
 
-        app.print_help(output);
+        assert_equal(app.print_help(output), 0);
         auto const text = output.str();
 
         assert_contain(text, "Usage: example [OPTION]... <INPUT> <OUTPUT>...");

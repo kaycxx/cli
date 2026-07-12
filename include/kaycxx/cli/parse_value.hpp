@@ -83,7 +83,7 @@ namespace detail {
  * @throws parse_error  When the value is syntactically invalid.
  */
 template <parseable_value T>
-T parse_value(std::string_view text) {
+[[nodiscard]] T parse_value(std::string_view text) {
     if constexpr (from_chars_parseable<T>) {
         auto value = T();
         auto const begin = text.data();
@@ -98,9 +98,13 @@ T parse_value(std::string_view text) {
         }
 
         return value;
-    } else if constexpr (from_string_parseable<T>) {
+    } else {
         try {
-            return from_string(text, std::type_identity<T>());
+            if constexpr (from_string_parseable<T>) {
+                return from_string(text, std::type_identity<T>());
+            } else {
+                return T(text);
+            }
         } catch (parse_error const&) {
             throw;
         } catch (std::exception const& error) {
@@ -108,8 +112,6 @@ T parse_value(std::string_view text) {
         } catch (...) {
             throw parse_error(std::format("Invalid value \"{}\"", text));
         }
-    } else {
-        return T(text);
     }
 }
 

@@ -36,17 +36,23 @@ public:
      *
      * @returns Flag definition owned by the command.
      */
-    switch_base const& definition() const noexcept {
+    [[nodiscard]] switch_base const& definition() const noexcept {
         return *definition_;
     }
 
 private:
     friend class command;
 
+    /**
+     * Creates a handle for a command-owned flag definition.
+     *
+     * @param definition  Flag definition to reference.
+     */
     explicit flag_handle(switch_base& definition) noexcept
         : definition_(&definition)
     {}
 
+    /** Non-owning pointer to the definition owned by the command. */
     switch_base* definition_;
 };
 

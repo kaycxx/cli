@@ -2,9 +2,12 @@
 
 Typed command-line parsing with GNU-style flags, options, and positional parameters.
 
-Requires C++26.
-
 [GitHub] | [API Documentation]
+
+## Requirements
+
+- C++23 compiler and standard library
+- Exception support
 
 ## Usage
 
@@ -52,7 +55,7 @@ int main(int argc, char* argv[]) {
 CMake users consume the installed package with:
 
 ```cmake
-find_package(kaycxx-cli 1.0.0 CONFIG REQUIRED)
+find_package(kaycxx-cli 0.0.5 CONFIG REQUIRED)
 target_link_libraries(my-target PRIVATE kaycxx::cli)
 ```
 

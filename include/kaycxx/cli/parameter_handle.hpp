@@ -29,7 +29,7 @@ public:
      *
      * @returns Parameter definition owned by the command.
      */
-    parameter<T> const& definition() const noexcept {
+    [[nodiscard]] parameter<T> const& definition() const noexcept {
         return *definition_;
     }
 
@@ -48,10 +48,16 @@ public:
 private:
     friend class command;
 
+    /**
+     * Creates a handle for a command-owned parameter definition.
+     *
+     * @param definition  Parameter definition to reference.
+     */
     explicit parameter_handle(parameter<T>& definition) noexcept
         : definition_(&definition)
     {}
 
+    /** Non-owning pointer to the definition owned by the command. */
     parameter<T>* definition_;
 };
 

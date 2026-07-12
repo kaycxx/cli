@@ -38,35 +38,35 @@ public:
      *
      * @returns Placeholder name used by generated help output and parse errors.
      */
-    std::string const& name() const noexcept;
+    [[nodiscard]] std::string const& name() const noexcept;
 
     /**
      * Returns the parameter description.
      *
      * @returns Human-readable description or an empty optional if no description was configured.
      */
-    std::optional<std::string> const& description() const noexcept;
+    [[nodiscard]] std::optional<std::string> const& description() const noexcept;
 
     /**
      * Returns generated help usage for this parameter.
      *
      * @returns Usage text.
      */
-    virtual std::string usage() const = 0;
+    [[nodiscard]] virtual std::string usage() const = 0;
 
     /**
      * Returns the minimum number of values consumed by this parameter.
      *
      * @returns Minimum value count.
      */
-    virtual std::size_t min_count() const noexcept = 0;
+    [[nodiscard]] virtual std::size_t min_count() const noexcept = 0;
 
     /**
      * Returns the maximum number of values consumed by this parameter.
      *
      * @returns Maximum value count.
      */
-    virtual std::size_t max_count() const noexcept = 0;
+    [[nodiscard]] virtual std::size_t max_count() const noexcept = 0;
 
     /**
      * Parses positional parameter values.
@@ -77,10 +77,13 @@ public:
      *
      * @throws parse_error  When a value is syntactically invalid or a required value is missing.
      */
-    virtual std::any parse_values(std::span<std::string_view const> values) const = 0;
+    [[nodiscard]] virtual std::any parse_values(std::span<std::string_view const> values) const = 0;
 
 private:
+    /** Placeholder name used by help output and parse errors. */
     std::string name_;
+
+    /** Optional human-readable description. */
     std::optional<std::string> description_;
 };
 

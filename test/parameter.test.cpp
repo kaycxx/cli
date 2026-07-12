@@ -61,7 +61,7 @@ suite("parameter") {
 
         assert_throw<parse_error>([&] {
             auto arguments = parse_arguments(app, {});
-            arguments.get(input);
+            static_cast<void>(arguments.get(input));
         }, "Missing parameter <INPUT>");
     });
 
@@ -71,7 +71,7 @@ suite("parameter") {
 
         assert_throw<parse_error>([&] {
             auto arguments = parse_arguments(app, { "invalid" });
-            arguments.get(count);
+            static_cast<void>(arguments.get(count));
         }, "Invalid value \"invalid\" for parameter <COUNT>");
     });
 }
