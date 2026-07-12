@@ -3,6 +3,7 @@ AUTOBRIEF
 BINDIR
 cflags
 COLORSTYLE
+ctest
 endforeach
 endfunction
 fsanitize
