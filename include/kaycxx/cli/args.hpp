@@ -19,6 +19,7 @@
 #include <kaycxx/cli/parameter_base.hpp>
 #include <kaycxx/cli/parameter_handle.hpp>
 #include <kaycxx/cli/parameters_handle.hpp>
+#include <kaycxx/cli/repeatable_option_handle.hpp>
 #include <kaycxx/cli/switch_base.hpp>
 
 namespace kaycxx::cli {
@@ -91,6 +92,32 @@ public:
      */
     template <parseable_value T>
     bool has(option_handle<T> const& option) const {
+        return values_.contains(&option.definition());
+    }
+
+    /**
+     * Returns all parsed values of a repeatable option.
+     *
+     * @tparam T  Option value type.
+     *
+     * @param option  Repeatable option handle returned by command::repeatable_option().
+     * @returns Parsed option values in command-line order.
+     */
+    template <parseable_value T>
+    std::vector<T> const& get(repeatable_option_handle<T> const& option) const {
+        return std::any_cast<std::vector<T> const&>(values_.at(&option.definition()));
+    }
+
+    /**
+     * Checks whether values for a repeatable option are available.
+     *
+     * @tparam T  Option value type.
+     *
+     * @param option  Repeatable option handle returned by command::repeatable_option().
+     * @returns True if the option was provided or has a default value, false otherwise.
+     */
+    template <parseable_value T>
+    bool has(repeatable_option_handle<T> const& option) const {
         return values_.contains(&option.definition());
     }
 

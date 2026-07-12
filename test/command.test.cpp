@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -97,6 +98,18 @@ suite("command") {
         assert_throw<parse_error>([&] {
             parse_arguments(app, { "-x" });
         }, "Unknown option -x");
+    });
+
+    it("rejects duplicate switch names and aliases", [] {
+        auto app = command("example");
+        [[maybe_unused]] auto output = app.option<std::string>("output", 'o', "FILE");
+
+        assert_throw<std::invalid_argument>([&] {
+            [[maybe_unused]] auto duplicate = app.repeatable_option<std::string>("output", "FILE");
+        }, "Duplicate switch --output");
+        assert_throw<std::invalid_argument>([&] {
+            [[maybe_unused]] auto duplicate = app.flag("overwrite", 'o');
+        }, "Duplicate switch -o");
     });
 
     it("rejects multiple actions", [] {

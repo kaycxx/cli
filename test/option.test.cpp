@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <string>
+#include <vector>
 
 #include <kaycxx/assert.hpp>
 #include <kaycxx/cli.hpp>
@@ -26,6 +27,14 @@ suite("option") {
         assert_equal(definition.description().value(), "Number of repetitions");
         assert_true(definition.expects_value());
         assert_false(definition.is_action());
+        assert_false(definition.is_repeatable());
+    });
+
+    it("exposes repeatable option definitions", [] {
+        auto app = command("example");
+        auto include = app.repeatable_option<std::string>("include", 'I', "PATH", "Include path");
+
+        assert_true(include.definition().is_repeatable());
     });
 
     it("marks options as actions", [] {
@@ -60,13 +69,35 @@ suite("option") {
         assert_false(arguments.has(output));
     });
 
-    it("uses the last value when repeated", [] {
+    it("rejects repeated single-value options", [] {
         auto app = command("example");
-        auto count = app.option<int>("count", 'c', "COUNT", "Number of repetitions");
+        [[maybe_unused]] auto count = app.option<int>("count", 'c', "COUNT", "Number of repetitions");
 
-        auto result = parse_arguments(app, { "--count", "1", "-c", "2" });
+        assert_throw<parse_error>([&] {
+            parse_arguments(app, { "--count", "1", "-c", "2" });
+        }, "Option -c cannot be specified more than once");
+    });
 
-        assert_equal(result.get(count), 2);
+    it("collects repeatable option values in command-line order", [] {
+        auto app = command("example");
+        auto include = app.repeatable_option<std::string>("include", 'I', "PATH", "Include path");
+
+        auto empty_arguments = parse_arguments(app, {});
+        auto arguments = parse_arguments(app, { "--include", "first", "--include=second", "-I", "third" });
+
+        assert_false(empty_arguments.has(include));
+        assert_true(arguments.has(include));
+        assert_equal(arguments.get(include), std::vector<std::string>{ "first", "second", "third" });
+    });
+
+    it("supports repeatable option defaults", [] {
+        auto app = command("example");
+        auto include = app.repeatable_option<std::string>("include", "PATH", "Include path").default_value("default");
+
+        auto arguments = parse_arguments(app, {});
+
+        assert_true(arguments.has(include));
+        assert_equal(arguments.get(include), std::vector<std::string>{ "default" });
     });
 
     it("reports missing values", [] {

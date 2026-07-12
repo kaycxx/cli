@@ -27,6 +27,7 @@
 #include <kaycxx/cli/parameter_handle.hpp>
 #include <kaycxx/cli/parameters.hpp>
 #include <kaycxx/cli/parameters_handle.hpp>
+#include <kaycxx/cli/repeatable_option_handle.hpp>
 #include <kaycxx/cli/switch_base.hpp>
 
 namespace kaycxx::cli {
@@ -146,6 +147,8 @@ public:
      * @param description  Optional human-readable flag description used by generated help output.
      *
      * @returns Handle used to query the parsed flag state.
+     *
+     * @throws std::invalid_argument  When the long name is already registered.
      */
     [[nodiscard]] cli::flag_handle flag(std::string_view name, std::optional<std::string_view> description = std::nullopt);
 
@@ -157,6 +160,8 @@ public:
      * @param description  Optional human-readable flag description used by generated help output.
      *
      * @returns Handle used to query the parsed flag state.
+     *
+     * @throws std::invalid_argument  When the long name or short alias is already registered.
      */
     [[nodiscard]] cli::flag_handle flag(std::string_view name, char alias, std::optional<std::string_view> description = std::nullopt);
 
@@ -170,6 +175,8 @@ public:
      * @param description  Optional human-readable option description used by generated help output.
      *
      * @returns Handle used to configure the option and query the parsed option value.
+     *
+     * @throws std::invalid_argument  When the long name is already registered.
      */
     template <parseable_value T>
     [[nodiscard]] cli::option_handle<T> option(
@@ -179,7 +186,7 @@ public:
     ) {
         auto item = std::make_unique<cli::option<T>>(name, value_name, description);
         auto& definition = *item;
-        switches_.push_back(std::move(item));
+        add_switch(std::move(item));
         return cli::option_handle<T>(definition);
     }
 
@@ -194,6 +201,8 @@ public:
      * @param description  Optional human-readable option description used by generated help output.
      *
      * @returns Handle used to configure the option and query the parsed option value.
+     *
+     * @throws std::invalid_argument  When the long name or short alias is already registered.
      */
     template <parseable_value T>
     [[nodiscard]] cli::option_handle<T> option(
@@ -204,8 +213,62 @@ public:
     ) {
         auto item = std::make_unique<cli::option<T>>(name, alias, value_name, description);
         auto& definition = *item;
-        switches_.push_back(std::move(item));
+        add_switch(std::move(item));
         return cli::option_handle<T>(definition);
+    }
+
+    /**
+     * Registers a repeatable option without a short alias.
+     *
+     * @tparam T  Parsed option value type.
+     *
+     * @param name         Long option name without the leading `--`.
+     * @param value_name   Placeholder name for each option value used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
+     *
+     * @returns Handle used to configure the option and query all parsed option values.
+     *
+     * @throws std::invalid_argument  When the long name is already registered.
+     */
+    template <parseable_value T>
+    [[nodiscard]] cli::repeatable_option_handle<T> repeatable_option(
+        std::string_view name,
+        std::string_view value_name,
+        std::optional<std::string_view> description = std::nullopt
+    ) {
+        auto item = std::make_unique<cli::option<T>>(name, value_name, description);
+        item->mark_as_repeatable();
+        auto& definition = *item;
+        add_switch(std::move(item));
+        return cli::repeatable_option_handle<T>(definition);
+    }
+
+    /**
+     * Registers a repeatable option with a short alias.
+     *
+     * @tparam T  Parsed option value type.
+     *
+     * @param name         Long option name without the leading `--`.
+     * @param alias        Short option alias without the leading `-`.
+     * @param value_name   Placeholder name for each option value used by generated help output.
+     * @param description  Optional human-readable option description used by generated help output.
+     *
+     * @returns Handle used to configure the option and query all parsed option values.
+     *
+     * @throws std::invalid_argument  When the long name or short alias is already registered.
+     */
+    template <parseable_value T>
+    [[nodiscard]] cli::repeatable_option_handle<T> repeatable_option(
+        std::string_view name,
+        char alias,
+        std::string_view value_name,
+        std::optional<std::string_view> description = std::nullopt
+    ) {
+        auto item = std::make_unique<cli::option<T>>(name, alias, value_name, description);
+        item->mark_as_repeatable();
+        auto& definition = *item;
+        add_switch(std::move(item));
+        return cli::repeatable_option_handle<T>(definition);
     }
 
     /**
@@ -292,6 +355,7 @@ public:
     int print_version(std::ostream& out) const;
 
 private:
+    void add_switch(std::unique_ptr<switch_base> item);
     [[nodiscard]] switch_base const* find_switch(std::string_view name) const noexcept;
     [[nodiscard]] switch_base const* find_switch(char alias) const noexcept;
     [[nodiscard]] bool has_described_switches() const noexcept;

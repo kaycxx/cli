@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include <kaycxx/cli/parse_value.hpp>
 #include <kaycxx/cli/switch_base.hpp>
@@ -40,6 +41,35 @@ public:
      * @returns Default value stored in type-erased form or an empty optional if no default value is configured.
      */
     virtual std::optional<std::any> default_value() const = 0;
+
+    /**
+     * Checks whether this option accepts multiple occurrences.
+     *
+     * @returns True when the option is repeatable, false otherwise.
+     */
+    bool is_repeatable() const noexcept {
+        return repeatable_;
+    }
+
+private:
+    friend class command;
+
+    /** Marks this option as repeatable. */
+    void mark_as_repeatable() noexcept {
+        repeatable_ = true;
+    }
+
+    /**
+     * Parses and appends a value to repeatable option storage.
+     *
+     * @param storage  Type-erased storage containing the option's `std::vector<T>`.
+     * @param text     Value text to parse.
+     *
+     * @throws parse_error  When the value is syntactically invalid.
+     */
+    virtual void append_value(std::any& storage, std::string_view text) const = 0;
+
+    bool repeatable_ = false;
 };
 
 /**
@@ -120,6 +150,11 @@ public:
      */
     std::optional<std::any> default_value() const override {
         if (default_value_) {
+            if (is_repeatable()) {
+                auto values = std::vector<T>();
+                values.push_back(*default_value_);
+                return std::any(std::move(values));
+            }
             return std::any(*default_value_);
         }
 
@@ -140,6 +175,22 @@ public:
     }
 
 private:
+    /**
+     * Parses and appends a value to repeatable option storage.
+     *
+     * @param storage  Type-erased storage containing this option's `std::vector<T>`.
+     * @param text     Value text to parse.
+     *
+     * @throws parse_error  When the value is syntactically invalid.
+     */
+    void append_value(std::any& storage, std::string_view text) const override {
+        auto value = detail::parse_value<T>(text);
+        if (!storage.has_value()) {
+            storage = std::vector<T>();
+        }
+        std::any_cast<std::vector<T>&>(storage).push_back(std::move(value));
+    }
+
     std::string value_name_;
     std::optional<T> default_value_;
 };

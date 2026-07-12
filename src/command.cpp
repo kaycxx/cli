@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -117,15 +118,25 @@ std::optional<std::string> const& command::description() const noexcept {
 cli::flag_handle command::flag(std::string_view name, std::optional<std::string_view> description) {
     auto item = std::make_unique<cli::flag>(name, description);
     auto& definition = *item;
-    switches_.push_back(std::move(item));
+    add_switch(std::move(item));
     return cli::flag_handle(definition);
 }
 
 cli::flag_handle command::flag(std::string_view name, char alias, std::optional<std::string_view> description) {
     auto item = std::make_unique<cli::flag>(name, alias, description);
     auto& definition = *item;
-    switches_.push_back(std::move(item));
+    add_switch(std::move(item));
     return cli::flag_handle(definition);
+}
+
+void command::add_switch(std::unique_ptr<switch_base> item) {
+    if (find_switch(item->name()) != nullptr) {
+        throw std::invalid_argument(std::format("Duplicate switch --{}", item->name()));
+    }
+    if (auto alias = item->alias(); alias && find_switch(*alias) != nullptr) {
+        throw std::invalid_argument(std::format("Duplicate switch -{}", *alias));
+    }
+    switches_.push_back(std::move(item));
 }
 
 switch_base const* command::find_switch(std::string_view name) const noexcept {
@@ -153,6 +164,23 @@ cli::args command::parse(int argc, char *argv[]) const {
     for (auto const& parameter : parameters_) {
         result.parameter_definitions_.push_back(parameter.get());
     }
+
+    auto record_option_value = [&](switch_base const& item, std::string_view label, std::string_view text) {
+        auto const& option = static_cast<option_base const&>(item);
+        if (result.values_.contains(&item) && !option.is_repeatable()) {
+            throw parse_error(std::format("Option {} cannot be specified more than once", label));
+        }
+
+        try {
+            if (option.is_repeatable()) {
+                option.append_value(result.values_[&item], text);
+            } else {
+                result.values_[&item] = option.parse_value(text);
+            }
+        } catch (parse_error const& error) {
+            throw parse_error(invalid_option_value_message(label, error));
+        }
+    };
 
     for (auto i = 1; i < argc; ++i) {
         auto arg = std::string_view(argv[i]);
@@ -195,11 +223,7 @@ cli::args command::parse(int argc, char *argv[]) const {
                 }
 
                 // Record option value
-                try {
-                    result.values_[item] = item->parse_value(*value);
-                } catch (parse_error const& error) {
-                    throw parse_error(invalid_option_value_message(label, error));
-                }
+                record_option_value(*item, label, *value);
             } else {
                 // Make sure no value was set when option is just a flag
                 if (value) {
@@ -230,11 +254,7 @@ cli::args command::parse(int argc, char *argv[]) const {
                 }
 
                 // Record option value
-                try {
-                    result.values_[item] = item->parse_value(argv[++i]);
-                } catch (parse_error const& error) {
-                    throw parse_error(invalid_option_value_message(label, error));
-                }
+                record_option_value(*item, label, argv[++i]);
             } else {
                 // Record flag
                 result.flags_.insert(item);

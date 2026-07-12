@@ -62,7 +62,20 @@ if (arguments.has(output)) {
 auto const job_count = arguments.get(jobs);
 ```
 
-When an option occurs more than once, the last parsed value is retained.
+An ordinary option may occur only once. Repeating it is reported as a parsing error.
+
+## Repeatable Options
+
+Use `repeatable_option` when the same option may occur multiple times. Its handle reads all converted values as a vector in command-line order.
+
+```cpp
+auto include = app.repeatable_option<std::string>("include", 'I', "PATH", "Additional include path");
+
+auto arguments = app.parse(argc, argv);
+auto const& include_paths = arguments.get(include);
+```
+
+For example, `--include first -I second --include=third` produces `std::vector<std::string>{ "first", "second", "third" }`. An absent repeatable option is unavailable through `args::get` unless it has a default value.
 
 ## Actions
 
